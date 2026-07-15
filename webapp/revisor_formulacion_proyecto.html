@@ -434,6 +434,11 @@
       <h2 class="panel-title">00 · Resumen general</h2>
       <p class="panel-sub">Estado consolidado de los 4 entregables de la Entrega N°1 (Formulación de Proyecto de Título, Modalidad Licitación), calculado partida por partida contra el Itemizado.</p>
 
+      <div class="toolbar" style="margin-top:0">
+        <button class="primary small" id="btn-descargar-planilla-completa">Descargar planilla Excel completa (.xlsx)</button>
+        <span class="count-chip">Todas las hojas + columna de Estado, lista para revisar</span>
+      </div>
+
       <div class="stat-grid" id="stat-grid-global"></div>
 
       <div class="grid-wrap" style="border:none;background:transparent;">
@@ -470,9 +475,9 @@
 
       <div class="toolbar">
         <button class="primary small" id="btn-add-item">+ Agregar partida</button>
-        <button class="small" id="btn-import-csv-itemizado">Importar CSV</button>
-        <input type="file" id="file-csv-itemizado" accept=".csv,.tsv,text/csv,text/plain" />
-        <button class="small" id="btn-export-csv-itemizado">Exportar CSV</button>
+        <button class="small" id="btn-import-xlsx-itemizado">Importar Excel (.xlsx)</button>
+        <input type="file" id="file-xlsx-itemizado" accept=".xlsx" />
+        <button class="small" id="btn-export-xlsx-itemizado">Descargar Excel (.xlsx)</button>
         <span class="spacer"></span>
         <span class="count-chip" id="chip-itemizado"></span>
       </div>
@@ -493,13 +498,13 @@
       <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>), la <strong>cantidad</strong> resultante y el <strong>archivo de respaldo</strong> del cálculo (planilla, apunte escaneado o PDF). Se revisa que la fórmula corresponda a la geometría de la partida — <strong>2 dimensiones (base × altura) para m²</strong> y <strong>3 dimensiones (largo × ancho × alto) para m³</strong> — que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales y que las partidas en <code>un</code> sean números enteros — tal como exige la pauta (nunca se redondea al entero superior). Si la partida es un círculo, triángulo, trapecio u otra forma no rectangular, marca <strong>"forma irregular"</strong> para omitir el chequeo de N° de dimensiones (el resto de las validaciones se sigue aplicando).</p>
 
       <div class="note">
-        <strong>Formato de carga homogéneo:</strong> descarga la plantilla CSV (ya trae el mismo orden de partidas que tu Itemizado), complétala en Excel y vuelve a importarla. Cada fila se empareja por el código de <strong>ITEM</strong>, no por su posición — así el orden en que vengan las filas del archivo no importa, y cualquier código que no calce con el Itemizado se te informa al importar.
+        <strong>Formato de carga homogéneo:</strong> descarga la plantilla Excel (ya trae el mismo orden de partidas que tu Itemizado, en un archivo <code>.xlsx</code> real), complétala y vuelve a importarla. Cada fila se empareja por el código de <strong>ITEM</strong>, no por su posición — así el orden en que vengan las filas del archivo no importa, y cualquier código que no calce con el Itemizado se te informa al importar.
       </div>
 
       <div class="toolbar">
-        <button class="small" id="btn-plantilla-csv-cubicaciones">Descargar plantilla/datos CSV</button>
-        <button class="small" id="btn-import-csv-cubicaciones">Importar CSV</button>
-        <input type="file" id="file-csv-cubicaciones" accept=".csv,.tsv,text/csv,text/plain" />
+        <button class="small" id="btn-plantilla-xlsx-cubicaciones">Descargar plantilla/datos (.xlsx)</button>
+        <button class="small" id="btn-import-xlsx-cubicaciones">Importar Excel (.xlsx)</button>
+        <input type="file" id="file-xlsx-cubicaciones" accept=".xlsx" />
         <span class="spacer"></span>
         <span class="count-chip" id="chip-cubicaciones"></span>
       </div>
@@ -529,9 +534,9 @@
       <p class="panel-sub">Las EETT se entregan en Word; aquí registras, por partida, el resumen de la modificación aplicada para poder auditar cobertura y nivel de detalle. Marca la casilla cuando el cambio esté correctamente resaltado en amarillo (agregado) o tachado (eliminado) en el documento Word.</p>
 
       <div class="toolbar">
-        <button class="small" id="btn-plantilla-csv-eett">Descargar plantilla/datos CSV</button>
-        <button class="small" id="btn-import-csv-eett">Importar CSV</button>
-        <input type="file" id="file-csv-eett" accept=".csv,.tsv,text/csv,text/plain" />
+        <button class="small" id="btn-plantilla-xlsx-eett">Descargar plantilla/datos (.xlsx)</button>
+        <button class="small" id="btn-import-xlsx-eett">Importar Excel (.xlsx)</button>
+        <input type="file" id="file-xlsx-eett" accept=".xlsx" />
         <span class="spacer"></span>
         <span class="count-chip" id="chip-eett"></span>
       </div>
@@ -558,9 +563,9 @@
       <p class="panel-sub">Agrupado por partida. Agrega una línea por cada material, herramienta, máquina o equipo que la partida requiera; este listado alimenta automáticamente la hoja de Cotizaciones.</p>
 
       <div class="toolbar">
-        <button class="small" id="btn-plantilla-csv-materiales">Descargar plantilla/datos CSV</button>
-        <button class="small" id="btn-import-csv-materiales">Importar CSV</button>
-        <input type="file" id="file-csv-materiales" accept=".csv,.tsv,text/csv,text/plain" />
+        <button class="small" id="btn-plantilla-xlsx-materiales">Descargar plantilla/datos (.xlsx)</button>
+        <button class="small" id="btn-import-xlsx-materiales">Importar Excel (.xlsx)</button>
+        <input type="file" id="file-xlsx-materiales" accept=".xlsx" />
         <span class="spacer"></span>
         <span class="count-chip" id="chip-materiales"></span>
       </div>
@@ -1113,57 +1118,318 @@ document.getElementById("btn-add-item").addEventListener("click", () => {
   renderTodo();
 });
 
-/* ---- Importar / Exportar CSV Itemizado ---- */
-function parseCSV(texto) {
-  // Si el archivo trae tabulaciones (ej. exportado como "texto delimitado por tabulaciones"),
-  // se usan como separador de columna. Esto evita ambigüedad con las comas decimales chilenas
-  // (12,35) cuando el archivo no viene con los campos numéricos entre comillas.
-  const sep = texto.indexOf("\t") !== -1 ? "\t" : ",";
-  return texto
-    .replace(/\r/g, "")
-    .split("\n")
-    .filter((l) => l.trim() !== "")
-    .map((line) => {
-      // separador simple; suficiente para exports típicos de Excel/Sheets sin comillas complejas
-      if (sep === ",") {
-        const out = [];
-        let cur = "";
-        let enComillas = false;
-        for (let i = 0; i < line.length; i++) {
-          const ch = line[i];
-          if (ch === '"') enComillas = !enComillas;
-          else if (ch === "," && !enComillas) { out.push(cur); cur = ""; }
-          else cur += ch;
-        }
-        out.push(cur);
-        return out.map((c) => c.trim());
-      }
-      return line.split("\t").map((c) => c.trim());
-    });
+/* ======================= Motor mínimo de lectura/escritura .xlsx ======================= */
+// Un archivo .xlsx es, por dentro, un ZIP con archivos XML (formato Office Open XML).
+// Como esta página no puede cargar librerías externas, el contenedor ZIP y el XML mínimo
+// se arman/leen a mano, apoyándose solo en APIs nativas del navegador para comprimir y
+// descomprimir (CompressionStream / DecompressionStream) — no se reimplementa DEFLATE.
+
+const CRC_TABLE = (() => {
+  const tabla = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    tabla[n] = c >>> 0;
+  }
+  return tabla;
+})();
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
-document.getElementById("btn-import-csv-itemizado").addEventListener("click", () => document.getElementById("file-csv-itemizado").click());
-document.getElementById("file-csv-itemizado").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const filas = parseCSV(String(reader.result));
-    filas.forEach((f, i) => {
-      const [item, descripcion, unidad] = f;
-      if (i === 0 && /item/i.test(item || "") && /descrip/i.test(descripcion || "")) return; // salta encabezado
-      if (!item && !descripcion) return;
-      addItemRow({ item: item || "", descripcion: descripcion || "", unidad: unidad || "" });
-    });
-    programarGuardado();
-    renderTodo();
-    e.target.value = "";
-  };
-  reader.readAsText(file, "utf-8");
-});
+function concatUint8(arrays) {
+  let total = 0;
+  arrays.forEach((a) => (total += a.length));
+  const out = new Uint8Array(total);
+  let offset = 0;
+  arrays.forEach((a) => { out.set(a, offset); offset += a.length; });
+  return out;
+}
+function u16le(n) { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0, n, true); return b; }
+function u32le(n) { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n, true); return b; }
 
-function descargarArchivo(nombre, contenido, tipo) {
-  const blob = new Blob([contenido], { type: tipo });
+async function deflateRaw(bytes) {
+  const cs = new CompressionStream("deflate-raw");
+  const writer = cs.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+}
+async function inflateRaw(bytes) {
+  const ds = new DecompressionStream("deflate-raw");
+  const writer = ds.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  return new Uint8Array(await new Response(ds.readable).arrayBuffer());
+}
+
+async function zipEscribir(archivos) {
+  const encoder = new TextEncoder();
+  const fechaDos = (1 << 5) | 1; // fecha DOS fija (1-ene); Excel no usa este dato para nada relevante aquí
+  const localBlocks = [];
+  const centralBlocks = [];
+  let offset = 0;
+  for (const archivo of archivos) {
+    const nombreBytes = encoder.encode(archivo.nombre);
+    const datos = archivo.contenido;
+    const crc = crc32(datos);
+    let comprimido = await deflateRaw(datos);
+    let metodo = 8;
+    if (comprimido.length >= datos.length) { comprimido = datos; metodo = 0; }
+
+    const localHeader = concatUint8([
+      u32le(0x04034b50), u16le(20), u16le(0x0800), u16le(metodo), u16le(0), u16le(fechaDos),
+      u32le(crc), u32le(comprimido.length), u32le(datos.length), u16le(nombreBytes.length), u16le(0),
+    ]);
+    localBlocks.push(localHeader, nombreBytes, comprimido);
+
+    const centralHeader = concatUint8([
+      u32le(0x02014b50), u16le(20), u16le(20), u16le(0x0800), u16le(metodo), u16le(0), u16le(fechaDos),
+      u32le(crc), u32le(comprimido.length), u32le(datos.length), u16le(nombreBytes.length),
+      u16le(0), u16le(0), u16le(0), u16le(0), u32le(0), u32le(offset),
+    ]);
+    centralBlocks.push(centralHeader, nombreBytes);
+
+    offset += localHeader.length + nombreBytes.length + comprimido.length;
+  }
+  const centralStart = offset;
+  const central = concatUint8(centralBlocks);
+  const eocd = concatUint8([
+    u32le(0x06054b50), u16le(0), u16le(0), u16le(archivos.length), u16le(archivos.length),
+    u32le(central.length), u32le(centralStart), u16le(0),
+  ]);
+  return concatUint8([...localBlocks, central, eocd]);
+}
+
+async function zipLeer(arrayBuffer) {
+  const bytes = new Uint8Array(arrayBuffer);
+  const view = new DataView(arrayBuffer);
+  let eocdOffset = -1;
+  const limite = Math.max(0, bytes.length - 22 - 65536);
+  for (let i = bytes.length - 22; i >= limite; i--) {
+    if (view.getUint32(i, true) === 0x06054b50) { eocdOffset = i; break; }
+  }
+  if (eocdOffset === -1) throw new Error("no es un archivo .xlsx válido (falta el índice ZIP)");
+  const totalEntradas = view.getUint16(eocdOffset + 10, true);
+  const centralOffset = view.getUint32(eocdOffset + 16, true);
+
+  const archivos = {};
+  let ptr = centralOffset;
+  for (let i = 0; i < totalEntradas; i++) {
+    if (view.getUint32(ptr, true) !== 0x02014b50) throw new Error("índice ZIP dañado");
+    const metodo = view.getUint16(ptr + 10, true);
+    const compSize = view.getUint32(ptr + 20, true);
+    const nombreLen = view.getUint16(ptr + 28, true);
+    const extraLen = view.getUint16(ptr + 30, true);
+    const comentLen = view.getUint16(ptr + 32, true);
+    const localOffset = view.getUint32(ptr + 42, true);
+    const nombre = new TextDecoder("utf-8").decode(bytes.subarray(ptr + 46, ptr + 46 + nombreLen));
+
+    const localNombreLen = view.getUint16(localOffset + 26, true);
+    const localExtraLen = view.getUint16(localOffset + 28, true);
+    const dataStart = localOffset + 30 + localNombreLen + localExtraLen;
+    const comprimido = bytes.subarray(dataStart, dataStart + compSize);
+
+    let datos;
+    if (metodo === 0) datos = comprimido;
+    else if (metodo === 8) datos = await inflateRaw(comprimido);
+    else throw new Error('método de compresión no soportado en "' + nombre + '"');
+
+    archivos[nombre] = datos;
+    ptr += 46 + nombreLen + extraLen + comentLen;
+  }
+  return archivos;
+}
+
+function letraColumna(indice) {
+  let n = indice + 1;
+  let letra = "";
+  while (n > 0) {
+    const resto = (n - 1) % 26;
+    letra = String.fromCharCode(65 + resto) + letra;
+    n = Math.floor((n - 1) / 26);
+  }
+  return letra;
+}
+function columnaAIndice(letras) {
+  let n = 0;
+  for (let i = 0; i < letras.length; i++) n = n * 26 + (letras.charCodeAt(i) - 64);
+  return n - 1;
+}
+function escXml(s) {
+  return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c]));
+}
+
+const XLSX_CONTENT_TYPES_HEAD =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+  '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+  '<Default Extension="xml" ContentType="application/xml"/>' +
+  '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+  '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>';
+const XLSX_RELS_ROOT =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+  '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+  "</Relationships>";
+const XLSX_STYLES =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+  '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>' +
+  '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF2B5D8C"/><bgColor indexed="64"/></patternFill></fill></fills>' +
+  '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+  '<cellXfs count="2">' +
+  '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+  '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>' +
+  "</cellXfs></styleSheet>";
+
+function generarHojaXml(filas) {
+  let filasXml = "";
+  let numCols = 1;
+  filas.forEach((fila, filaIdx) => {
+    numCols = Math.max(numCols, fila.length);
+    const numFila = filaIdx + 1;
+    let celdasXml = "";
+    fila.forEach((valor, colIdx) => {
+      if (valor === null || valor === undefined || valor === "") return;
+      const ref = letraColumna(colIdx) + numFila;
+      celdasXml += '<c r="' + ref + '" t="inlineStr"' + (filaIdx === 0 ? ' s="1"' : "") + '><is><t xml:space="preserve">' + escXml(valor) + "</t></is></c>";
+    });
+    filasXml += '<row r="' + numFila + '">' + celdasXml + "</row>";
+  });
+  const dimension = "A1:" + letraColumna(numCols - 1) + Math.max(filas.length, 1);
+  return (
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<dimension ref="' + dimension + '"/>' +
+    '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
+    '<sheetFormatPr defaultRowHeight="15"/><sheetData>' + filasXml + "</sheetData></worksheet>"
+  );
+}
+
+// hojas: [{ nombre, filas: [[...encabezados], [...fila1], ...] }] -> Blob de un .xlsx real
+async function generarXlsx(hojas) {
+  const encoder = new TextEncoder();
+  const nombresSeguros = hojas.map((h) => (h.nombre.replace(/[[\]*?/\\:]/g, "").slice(0, 31) || "Hoja"));
+
+  let contentTypes = XLSX_CONTENT_TYPES_HEAD;
+  hojas.forEach((h, i) => {
+    contentTypes += '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+  });
+  contentTypes += "</Types>";
+
+  let sheetsXml = "";
+  let relsXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+  hojas.forEach((h, i) => {
+    sheetsXml += '<sheet name="' + escXml(nombresSeguros[i]) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>';
+    relsXml += '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>';
+  });
+  relsXml += '<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' + "</Relationships>";
+
+  const workbookXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    "<sheets>" + sheetsXml + "</sheets></workbook>";
+
+  const archivos = [
+    { nombre: "[Content_Types].xml", contenido: encoder.encode(contentTypes) },
+    { nombre: "_rels/.rels", contenido: encoder.encode(XLSX_RELS_ROOT) },
+    { nombre: "xl/workbook.xml", contenido: encoder.encode(workbookXml) },
+    { nombre: "xl/_rels/workbook.xml.rels", contenido: encoder.encode(relsXml) },
+    { nombre: "xl/styles.xml", contenido: encoder.encode(XLSX_STYLES) },
+  ];
+  hojas.forEach((h, i) => {
+    archivos.push({ nombre: "xl/worksheets/sheet" + (i + 1) + ".xml", contenido: encoder.encode(generarHojaXml(h.filas)) });
+  });
+
+  const zipBytes = await zipEscribir(archivos);
+  return new Blob([zipBytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
+// arrayBuffer de un .xlsx -> { hojas: {nombre: filas[][]}, orden: [nombre,...] }
+// Soporta tanto los archivos que genera esta misma página (celdas de texto en línea)
+// como archivos guardados por Excel/LibreOffice/Sheets de verdad (que usan sharedStrings).
+async function leerXlsx(arrayBuffer) {
+  const archivos = await zipLeer(arrayBuffer);
+  const decoder = new TextDecoder("utf-8");
+  const parser = new DOMParser();
+
+  const workbookDoc = parser.parseFromString(decoder.decode(archivos["xl/workbook.xml"]), "application/xml");
+  const sheetNodes = Array.from(workbookDoc.getElementsByTagName("sheet"));
+
+  const relsMap = {};
+  if (archivos["xl/_rels/workbook.xml.rels"]) {
+    const relsDoc = parser.parseFromString(decoder.decode(archivos["xl/_rels/workbook.xml.rels"]), "application/xml");
+    Array.from(relsDoc.getElementsByTagName("Relationship")).forEach((rel) => {
+      relsMap[rel.getAttribute("Id")] = rel.getAttribute("Target");
+    });
+  }
+
+  let sharedStrings = [];
+  if (archivos["xl/sharedStrings.xml"]) {
+    const ssDoc = parser.parseFromString(decoder.decode(archivos["xl/sharedStrings.xml"]), "application/xml");
+    sharedStrings = Array.from(ssDoc.getElementsByTagName("si")).map((si) => si.textContent);
+  }
+
+  const hojas = {};
+  const orden = [];
+  sheetNodes.forEach((sheetNode) => {
+    const nombre = sheetNode.getAttribute("name");
+    const rId = sheetNode.getAttribute("r:id") || sheetNode.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id");
+    let target = relsMap[rId];
+    if (!target) return;
+    target = target.replace(/^\//, "");
+    if (!target.startsWith("xl/")) target = "xl/" + target;
+    const sheetBytes = archivos[target];
+    if (!sheetBytes) return;
+
+    const sheetDoc = parser.parseFromString(decoder.decode(sheetBytes), "application/xml");
+    const filas = [];
+    Array.from(sheetDoc.getElementsByTagName("row")).forEach((rowNode) => {
+      const numFila = (parseInt(rowNode.getAttribute("r"), 10) || filas.length + 1) - 1;
+      const fila = filas[numFila] || (filas[numFila] = []);
+      Array.from(rowNode.getElementsByTagName("c")).forEach((cellNode) => {
+        const ref = (cellNode.getAttribute("r") || "").replace(/[0-9]/g, "");
+        const colIdx = ref ? columnaAIndice(ref) : fila.length;
+        const tipo = cellNode.getAttribute("t");
+        let valor = "";
+        if (tipo === "inlineStr") {
+          const isNode = cellNode.getElementsByTagName("is")[0];
+          valor = isNode ? isNode.textContent : "";
+        } else if (tipo === "s") {
+          const vNode = cellNode.getElementsByTagName("v")[0];
+          const idx = vNode ? parseInt(vNode.textContent, 10) : -1;
+          valor = sharedStrings[idx] || "";
+        } else {
+          const vNode = cellNode.getElementsByTagName("v")[0];
+          valor = vNode ? vNode.textContent : "";
+        }
+        fila[colIdx] = valor;
+      });
+    });
+    for (let i = 0; i < filas.length; i++) if (!filas[i]) filas[i] = [];
+    hojas[nombre] = filas.map((f) => f.map((v) => (v === undefined || v === null ? "" : v)));
+    orden.push(nombre);
+  });
+
+  return { hojas, orden };
+}
+
+function elegirHojaImportada(resultadoLectura, nombrePreferido) {
+  const { hojas, orden } = resultadoLectura;
+  if (orden.length === 0) return [];
+  const pref = normItemCode(nombrePreferido);
+  const candidato = orden.find((n) => normItemCode(n).includes(pref));
+  return hojas[candidato || orden[0]] || [];
+}
+
+function descargarBlob(nombre, blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1174,17 +1440,7 @@ function descargarArchivo(nombre, contenido, tipo) {
   URL.revokeObjectURL(url);
 }
 
-function csvEscape(v) {
-  const s = v === null || v === undefined ? "" : String(v);
-  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-
-document.getElementById("btn-export-csv-itemizado").addEventListener("click", () => {
-  const filas = [["ITEM", "DESCRIPCION", "UNIDAD"]].concat(state.itemizado.map((it) => [it.item, it.descripcion, it.unidad]));
-  descargarArchivo("itemizado.csv", filas.map((f) => f.map(csvEscape).join(",")).join("\n"), "text/csv;charset=utf-8");
-});
-
-/* ======================= Import/Export CSV emparejado por ITEM ======================= */
+/* ======================= Import/Export Excel (.xlsx) emparejado por ITEM ======================= */
 // A diferencia del pegado desde Excel (posicional), estas importaciones emparejan
 // cada fila con su partida por el código de ITEM, sin importar el orden del archivo.
 function normItemCode(s) {
@@ -1196,8 +1452,7 @@ function buscarItemPorCodigo(codigo) {
   return state.itemizado.find((it) => normItemCode(it.item) === norm) || null;
 }
 
-function importarCsvPorItem(texto, onFila) {
-  const filas = parseCSV(texto);
+function importarFilasPorItem(filas, onFila) {
   let importadas = 0;
   const noEncontrados = [];
   filas.forEach((f, i) => {
@@ -1235,34 +1490,70 @@ function reportarImportacion(nombreHoja, resultado) {
     mostrarAviso(
       nombreHoja + ": se importaron " + resultado.importadas + " fila(s). " + resultado.noEncontrados.length +
         " fila(s) no calzan con ningún ITEM del Itemizado: " + listado +
-        ". Corrige el código en el CSV o agrégalo primero en 01 · Itemizado.",
+        ". Corrige el código en el Excel o agrégalo primero en 01 · Itemizado.",
       "warn"
     );
   }
 }
 
-function exportarCsvPorItem(nombreArchivo, encabezados, filaFn) {
-  const filas = [encabezados].concat(state.itemizado.map((it) => [it.item].concat(filaFn(it))));
-  descargarArchivo(nombreArchivo, filas.map((f) => f.map(csvEscape).join(",")).join("\n"), "text/csv;charset=utf-8");
+async function leerPrimeraHoja(file, nombrePreferido) {
+  const buffer = await file.arrayBuffer();
+  const resultado = await leerXlsx(buffer);
+  return elegirHojaImportada(resultado, nombrePreferido);
 }
+
+async function exportarXlsxPorItem(nombreArchivo, nombreHoja, encabezados, filaFn) {
+  const filas = [encabezados].concat(state.itemizado.map((it) => [it.item].concat(filaFn(it))));
+  const blob = await generarXlsx([{ nombre: nombreHoja, filas }]);
+  descargarBlob(nombreArchivo, blob);
+}
+
+/* ---- Itemizado ---- */
+document.getElementById("btn-import-xlsx-itemizado").addEventListener("click", () => document.getElementById("file-xlsx-itemizado").click());
+document.getElementById("file-xlsx-itemizado").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const filas = await leerPrimeraHoja(file, "itemizado");
+    let agregadas = 0;
+    filas.forEach((f, i) => {
+      const [item, descripcion, unidad] = f;
+      if (i === 0 && normItemCode(item) === "item") return;
+      if (!item && !descripcion) return;
+      addItemRow({ item: item || "", descripcion: descripcion || "", unidad: unidad || "" });
+      agregadas++;
+    });
+    mostrarAviso("Itemizado: se agregaron " + agregadas + " partida(s) desde el Excel.", "ok");
+    programarGuardado();
+    renderTodo();
+  } catch (err) {
+    mostrarAviso("No se pudo leer el archivo Excel: " + err.message, "warn");
+  }
+  e.target.value = "";
+});
+document.getElementById("btn-export-xlsx-itemizado").addEventListener("click", async () => {
+  const filas = [["ITEM", "DESCRIPCION", "UNIDAD"]].concat(state.itemizado.map((it) => [it.item, it.descripcion, it.unidad]));
+  const blob = await generarXlsx([{ nombre: "Itemizado", filas }]);
+  descargarBlob("itemizado.xlsx", blob);
+});
 
 /* ---- Cubicaciones ---- */
 function leerCub(itemId) {
   return state.cubicaciones[itemId] || { memoria: "", cantidad: "", respaldo: "", irregular: false };
 }
-document.getElementById("btn-plantilla-csv-cubicaciones").addEventListener("click", () => {
-  exportarCsvPorItem("cubicaciones.csv", ["ITEM", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR"], (it) => {
+document.getElementById("btn-plantilla-xlsx-cubicaciones").addEventListener("click", () => {
+  exportarXlsxPorItem("cubicaciones.xlsx", "Cubicaciones", ["ITEM", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR"], (it) => {
     const c = leerCub(it.id);
     return [c.memoria, c.cantidad, c.respaldo, c.irregular ? "SI" : "NO"];
   });
 });
-document.getElementById("btn-import-csv-cubicaciones").addEventListener("click", () => document.getElementById("file-csv-cubicaciones").click());
-document.getElementById("file-csv-cubicaciones").addEventListener("change", (e) => {
+document.getElementById("btn-import-xlsx-cubicaciones").addEventListener("click", () => document.getElementById("file-xlsx-cubicaciones").click());
+document.getElementById("file-xlsx-cubicaciones").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const resultado = importarCsvPorItem(String(reader.result), (it, resto) => {
+  try {
+    const filas = await leerPrimeraHoja(file, "cubicaciones");
+    const resultado = importarFilasPorItem(filas, (it, resto) => {
       const [memoria, cantidad, respaldo, irregular] = resto;
       const rec = getCub(it.id);
       rec.memoria = memoria || "";
@@ -1273,28 +1564,29 @@ document.getElementById("file-csv-cubicaciones").addEventListener("change", (e) 
     reportarImportacion("Cubicaciones", resultado);
     programarGuardado();
     renderTodo();
-    e.target.value = "";
-  };
-  reader.readAsText(file, "utf-8");
+  } catch (err) {
+    mostrarAviso("No se pudo leer el archivo Excel: " + err.message, "warn");
+  }
+  e.target.value = "";
 });
 
 /* ---- EETT ---- */
 function leerEett(itemId) {
   return state.eett[itemId] || { detalle: "", marcado: false };
 }
-document.getElementById("btn-plantilla-csv-eett").addEventListener("click", () => {
-  exportarCsvPorItem("especificaciones-tecnicas.csv", ["ITEM", "DETALLE", "MARCADO"], (it) => {
+document.getElementById("btn-plantilla-xlsx-eett").addEventListener("click", () => {
+  exportarXlsxPorItem("especificaciones-tecnicas.xlsx", "EETT", ["ITEM", "DETALLE", "MARCADO"], (it) => {
     const e = leerEett(it.id);
     return [e.detalle, e.marcado ? "SI" : "NO"];
   });
 });
-document.getElementById("btn-import-csv-eett").addEventListener("click", () => document.getElementById("file-csv-eett").click());
-document.getElementById("file-csv-eett").addEventListener("change", (e) => {
+document.getElementById("btn-import-xlsx-eett").addEventListener("click", () => document.getElementById("file-xlsx-eett").click());
+document.getElementById("file-xlsx-eett").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const resultado = importarCsvPorItem(String(reader.result), (it, resto) => {
+  try {
+    const filas = await leerPrimeraHoja(file, "eett");
+    const resultado = importarFilasPorItem(filas, (it, resto) => {
       const [detalle, marcado] = resto;
       const rec = getEett(it.id);
       rec.detalle = detalle || "";
@@ -1303,28 +1595,30 @@ document.getElementById("file-csv-eett").addEventListener("change", (e) => {
     reportarImportacion("Especificaciones Técnicas", resultado);
     programarGuardado();
     renderTodo();
-    e.target.value = "";
-  };
-  reader.readAsText(file, "utf-8");
+  } catch (err) {
+    mostrarAviso("No se pudo leer el archivo Excel: " + err.message, "warn");
+  }
+  e.target.value = "";
 });
 
 /* ---- Materiales (varias líneas por ITEM: la exportación/importación no es 1 fila por partida) ---- */
-document.getElementById("btn-plantilla-csv-materiales").addEventListener("click", () => {
+document.getElementById("btn-plantilla-xlsx-materiales").addEventListener("click", async () => {
   const filas = [["ITEM", "NOMBRE", "TIPO", "DETALLE", "CANTIDAD", "UNIDAD"]].concat(
     state.materiales.map((m) => {
       const it = state.itemizado.find((x) => x.id === m.itemId);
       return [it ? it.item : "", m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad];
     })
   );
-  descargarArchivo("materiales.csv", filas.map((f) => f.map(csvEscape).join(",")).join("\n"), "text/csv;charset=utf-8");
+  const blob = await generarXlsx([{ nombre: "Materiales", filas }]);
+  descargarBlob("materiales.xlsx", blob);
 });
-document.getElementById("btn-import-csv-materiales").addEventListener("click", () => document.getElementById("file-csv-materiales").click());
-document.getElementById("file-csv-materiales").addEventListener("change", (e) => {
+document.getElementById("btn-import-xlsx-materiales").addEventListener("click", () => document.getElementById("file-xlsx-materiales").click());
+document.getElementById("file-xlsx-materiales").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const resultado = importarCsvPorItem(String(reader.result), (it, resto) => {
+  try {
+    const filas = await leerPrimeraHoja(file, "materiales");
+    const resultado = importarFilasPorItem(filas, (it, resto) => {
       const [nombre, tipo, detalle, cantidad, unidad] = resto;
       const m = addMaterial(it.id);
       m.nombre = nombre || "";
@@ -1336,9 +1630,10 @@ document.getElementById("file-csv-materiales").addEventListener("change", (e) =>
     reportarImportacion("Materiales", resultado);
     programarGuardado();
     renderTodo();
-    e.target.value = "";
-  };
-  reader.readAsText(file, "utf-8");
+  } catch (err) {
+    mostrarAviso("No se pudo leer el archivo Excel: " + err.message, "warn");
+  }
+  e.target.value = "";
 });
 
 /* ======================= Render: Cubicaciones ======================= */
@@ -1647,7 +1942,8 @@ inputProyecto.addEventListener("input", () => {
 
 document.getElementById("btn-export-json").addEventListener("click", () => {
   const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
-  descargarArchivo(slug + "-formulacion-progreso.json", JSON.stringify(state, null, 2), "application/json");
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  descargarBlob(slug + "-formulacion-progreso.json", blob);
 });
 document.getElementById("btn-import-json").addEventListener("click", () => document.getElementById("file-import-json").click());
 document.getElementById("file-import-json").addEventListener("change", (e) => {
@@ -1675,6 +1971,69 @@ document.getElementById("btn-reset").addEventListener("click", () => {
   inputProyecto.value = "";
   localStorage.removeItem(STORAGE_KEY);
   renderTodo();
+});
+
+/* ======================= Planilla Excel completa (descarga + revisión) ======================= */
+document.getElementById("btn-descargar-planilla-completa").addEventListener("click", async () => {
+  if (state.itemizado.length === 0) {
+    mostrarAviso("Agrega partidas en el Itemizado antes de descargar la planilla completa.", "warn");
+    return;
+  }
+
+  const hojaResumen = [["ENTREGABLE", "PARTIDAS", "REALIZADAS", "CORRECTAS", "MAL_EJECUTADAS", "FALTANTES"]];
+  DELIVERABLES.forEach((d) => {
+    const r = resumenEntregable(d.fn);
+    hojaResumen.push([d.nombre, r.total, r.realizadas, r.correctas, r.mal, r.faltantes]);
+  });
+
+  const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD"]].concat(state.itemizado.map((it) => [it.item, it.descripcion, it.unidad]));
+
+  const hojaCubicaciones = [["ITEM", "DESCRIPCION", "UNIDAD", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR", "ESTADO", "OBSERVACIONES"]];
+  state.itemizado.forEach((it) => {
+    const c = leerCub(it.id);
+    const est = estadoCubicacion(it);
+    hojaCubicaciones.push([it.item, it.descripcion, it.unidad, c.memoria, c.cantidad, c.respaldo, c.irregular ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
+  });
+
+  const hojaEett = [["ITEM", "DESCRIPCION", "DETALLE", "MARCADO", "ESTADO", "OBSERVACIONES"]];
+  state.itemizado.forEach((it) => {
+    const e = leerEett(it.id);
+    const est = estadoEett(it);
+    hojaEett.push([it.item, it.descripcion, e.detalle, e.marcado ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
+  });
+
+  const hojaMateriales = [["ITEM", "DESCRIPCION_PARTIDA", "NOMBRE", "TIPO", "DETALLE", "CANTIDAD", "UNIDAD", "ESTADO"]];
+  state.itemizado.forEach((it) => {
+    materialesDeItem(it.id).forEach((m) => {
+      const issues = estadoMaterialLinea(m);
+      hojaMateriales.push([it.item, it.descripcion, m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad, issues.length ? "OBSERVADO: " + issues.join(", ") : "OK"]);
+    });
+  });
+
+  const hojaCotizaciones = [["ITEM", "DESCRIPCION_PARTIDA", "MATERIAL", "TIPO", "PROVEEDOR_01", "PROVEEDOR_02", "PROVEEDOR_03", "UNICO", "ARCHIVO", "ESTADO", "OBSERVACIONES"]];
+  state.itemizado.forEach((it) => {
+    materialesDeItem(it.id).forEach((m) => {
+      const c = state.cotizaciones[m.id] || {};
+      const linea = estadoCotizacionLinea(m);
+      hojaCotizaciones.push([
+        it.item, it.descripcion, m.nombre, m.tipo, c.prov1 || "",
+        m.tipo === "Material" ? c.prov2 || "" : "", m.tipo === "Material" ? c.prov3 || "" : "",
+        m.unico ? "SI" : "NO", c.archivo || "", linea.status.toUpperCase(), linea.issues.join(" "),
+      ]);
+    });
+  });
+
+  const blob = await generarXlsx([
+    { nombre: "Resumen", filas: hojaResumen },
+    { nombre: "Itemizado", filas: hojaItemizado },
+    { nombre: "Cubicaciones", filas: hojaCubicaciones },
+    { nombre: "EETT", filas: hojaEett },
+    { nombre: "Materiales", filas: hojaMateriales },
+    { nombre: "Cotizaciones", filas: hojaCotizaciones },
+  ]);
+  const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
+  descargarBlob(slug + "-formulacion-completa.xlsx", blob);
+  mostrarAviso("Planilla Excel completa descargada.", "ok");
 });
 
 /* ======================= Orquestación ======================= */
