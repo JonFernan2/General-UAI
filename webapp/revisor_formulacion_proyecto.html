@@ -508,9 +508,10 @@
       <div class="toolbar">
         <button class="primary small" id="btn-add-item">+ Agregar partida</button>
         <button class="small" id="btn-add-titulo">+ Agregar título de sección</button>
+        <button class="small" id="btn-plantilla-xlsx-itemizado">Descargar plantilla de ejemplo (.xlsx)</button>
         <button class="small" id="btn-import-xlsx-itemizado">Importar Excel (.xlsx)</button>
         <input type="file" id="file-xlsx-itemizado" accept=".xlsx" />
-        <button class="small" id="btn-export-xlsx-itemizado">Descargar Excel (.xlsx)</button>
+        <button class="small" id="btn-export-xlsx-itemizado">Descargar mis datos (.xlsx)</button>
         <span class="spacer"></span>
         <span class="count-chip" id="chip-itemizado"></span>
       </div>
@@ -528,7 +529,8 @@
       </div>
 
       <div class="toolbar">
-        <button class="small" id="btn-plantilla-xlsx-cubicaciones">Descargar plantilla/datos (.xlsx)</button>
+        <button class="small" id="btn-ejemplo-xlsx-cubicaciones">Descargar plantilla de ejemplo (.xlsx)</button>
+        <button class="small" id="btn-plantilla-xlsx-cubicaciones">Descargar mis datos (.xlsx)</button>
         <button class="small" id="btn-import-xlsx-cubicaciones">Importar Excel (.xlsx)</button>
         <input type="file" id="file-xlsx-cubicaciones" accept=".xlsx" />
         <span class="spacer"></span>
@@ -1547,10 +1549,38 @@ function filasItemizadoCompleto() {
   return filas;
 }
 
+document.getElementById("btn-plantilla-xlsx-itemizado").addEventListener("click", async () => {
+  try {
+    const filas = [
+      ["TIPO_FILA", "ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"],
+      ["TITULO",   "1.0",  "DEMOLICIONES Y OBRAS PRELIMINARES",     "",    ""],
+      ["PARTIDA",  "1.1",  "Instalación de faenas",                 "gl",  "NO"],
+      ["PARTIDA",  "1.2",  "Demolición de tabiques de madera",      "m2",  "NO"],
+      ["PARTIDA",  "1.3",  "Retiro de escombros a botadero",        "m3",  "NO"],
+      ["TITULO",   "2.0",  "OBRA GRUESA",                           "",    ""],
+      ["PARTIDA",  "2.1",  "Radier H-25, e=10 cm",                  "m3",  "NO"],
+      ["PARTIDA",  "2.2",  "Enfierradura ø8 mm",                    "kg",  "NO"],
+      ["PARTIDA",  "2.3",  "Moldaje para muros",                    "m2",  "NO"],
+      ["PARTIDA",  "2.4",  "Hormigón HA-25 para muros",             "m3",  "NO"],
+      ["TITULO",   "3.0",  "TERMINACIONES",                         "",    ""],
+      ["PARTIDA",  "3.1",  "Porcelanato exterior 60x60 cm",         "m2",  "NO"],
+      ["PARTIDA",  "3.2",  "Pintura interior látex, 2 manos",       "m2",  "NO"],
+      ["TITULO",   "5.0",  "INSTALACIONES ELÉCTRICAS (ESP.)",       "",    ""],
+      ["PARTIDA",  "5.1",  "Tablero eléctrico general 12 circuitos","un",  "SI"],
+      ["PARTIDA",  "5.2",  "Punto de luz empotrado",                "un",  "SI"],
+    ];
+    const blob = await generarXlsx([{ nombre: "Itemizado", filas }]);
+    descargarBlob("plantilla_listado_actividades.xlsx", blob);
+    mostrarAviso("Plantilla de ejemplo descargada. Edítala en Excel y vuelve a importarla.", "ok");
+  } catch (err) {
+    mostrarAviso("Error al generar la plantilla: " + err.message, "warn");
+  }
+});
+
 document.getElementById("btn-export-xlsx-itemizado").addEventListener("click", async () => {
   try {
     const blob = await generarXlsx([{ nombre: "Itemizado", filas: filasItemizadoCompleto() }]);
-    descargarBlob("itemizado_y_materiales.xlsx", blob);
+    descargarBlob("listado_actividades.xlsx", blob);
   } catch (err) {
     mostrarAviso("Error al generar el Excel: " + err.message, "warn");
     console.error("Error al exportar Itemizado:", err);
@@ -1619,6 +1649,43 @@ function filasCubicacionesCompleto() {
   });
   return filas;
 }
+
+document.getElementById("btn-ejemplo-xlsx-cubicaciones").addEventListener("click", async () => {
+  try {
+    const filas = [
+      ["ITEM", "RESPALDO",                   "FORMA_IRREGULAR", "DIM1",  "DIM2",  "DIM3",  "SIGNO", "MEMORIA_MANUAL",              "CANTIDAD_MANUAL"],
+      // 1.1 Faenas (gl → cantidad manual entera)
+      ["1.1",  "Lámina G-00",                "NO",              "",      "",      "",      "",      "",                            "1"],
+      // 1.2 Demolición tabiques (m2 · 2 tramos: muro completo menos puerta)
+      ["1.2",  "Lámina A-01, eje 3",         "NO",              "4,80",  "2,60",  "",      "+",     "",                            ""],
+      ["1.2",  "Lámina A-01, eje 3",         "NO",              "0,90",  "2,10",  "",      "-",     "",                            ""],
+      // 1.3 Retiro escombros (m3)
+      ["1.3",  "Lámina A-01",                "NO",              "12,50", "8,00",  "0,15",  "+",     "",                            ""],
+      // 2.1 Radier (m3)
+      ["2.1",  "Lámina A-03, eje B-C",       "NO",              "12,35", "8,20",  "0,10",  "+",     "",                            ""],
+      // 2.2 Enfierradura (kg · fórmula manual)
+      ["2.2",  "Cálculo estructural E-01",   "NO",              "",      "",      "",      "",      "45 x 3 x 0,395",              ""],
+      // 2.3 Moldaje (m2)
+      ["2.3",  "Lámina E-02",                "NO",              "12,50", "2,60",  "",      "+",     "",                            ""],
+      // 2.4 Hormigón muros (m3)
+      ["2.4",  "Lámina E-02",                "NO",              "12,50", "0,20",  "2,60",  "+",     "",                            ""],
+      // 3.1 Porcelanato (m2 · forma irregular: círculo → MEMORIA_MANUAL)
+      ["3.1",  "Lámina A-05",                "SI",              "",      "",      "",      "",      "3,1416 x 1,5 x 1,5",          ""],
+      // 3.2 Pintura (m2 · 2 tramos sumados)
+      ["3.2",  "Lámina A-04",                "NO",              "8,40",  "2,60",  "",      "+",     "",                            ""],
+      ["3.2",  "Lámina A-04",                "NO",              "6,20",  "2,60",  "",      "+",     "",                            ""],
+      // 5.1 Tablero eléctrico (un · especialidad — igual debe tener cantidad)
+      ["5.1",  "Plano IE-01",                "NO",              "",      "",      "",      "",      "",                            "1"],
+      // 5.2 Puntos de luz (un)
+      ["5.2",  "Plano IE-01",                "NO",              "",      "",      "",      "",      "",                            "24"],
+    ];
+    const blob = await generarXlsx([{ nombre: "Cubicaciones", filas }]);
+    descargarBlob("plantilla_cubicaciones.xlsx", blob);
+    mostrarAviso("Plantilla de ejemplo descargada. Edítala en Excel con tus propias dimensiones y vuelve a importarla.", "ok");
+  } catch (err) {
+    mostrarAviso("Error al generar la plantilla: " + err.message, "warn");
+  }
+});
 
 document.getElementById("btn-plantilla-xlsx-cubicaciones").addEventListener("click", async () => {
   try {
