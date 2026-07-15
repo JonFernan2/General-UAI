@@ -427,10 +427,6 @@
   table.grid > tbody.item-group { border: none; border-radius: 0; background: transparent; margin: 0; }
   #itemizado-list table.grid tr.titulo-row td { background: var(--accent-soft); border-bottom: 1px solid var(--line); }
   #itemizado-list table.grid tr.titulo-row:hover td { background: var(--accent-soft); }
-  #itemizado-list table.grid tr.mat-sub td { background: var(--paper); padding: 8px 14px 12px; border-bottom: 2px solid var(--line-strong); }
-  #itemizado-list table.grid tr.mat-sub:hover td { background: var(--paper); }
-  .mat-sub-inner { border-left: 3px solid var(--line-strong); padding-left: 12px; }
-  .mat-sub-label { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; font-weight: 700; }
 </style>
 
 <div class="app">
@@ -442,10 +438,9 @@
     </div>
     <nav id="tab-nav">
       <button class="tab-btn active" data-tab="resumen"><span class="num">00</span><span class="label">Resumen</span></button>
-      <button class="tab-btn" data-tab="itemizado"><span class="num">01</span><span class="label">Itemizado y Materiales</span><span class="badge" id="badge-itemizado">0</span></button>
+      <button class="tab-btn" data-tab="itemizado"><span class="num">01</span><span class="label">Listado de Actividades</span><span class="badge" id="badge-itemizado">0</span></button>
       <button class="tab-btn" data-tab="cubicaciones"><span class="num">02</span><span class="label">Cubicaciones</span><span class="badge" id="badge-cubicaciones">0</span></button>
       <button class="tab-btn" data-tab="eett"><span class="num">03</span><span class="label">Espec. Técnicas</span><span class="badge" id="badge-eett">0</span></button>
-      <button class="tab-btn" data-tab="cotizaciones"><span class="num">04</span><span class="label">Cotizaciones</span><span class="badge" id="badge-cotizaciones">0</span></button>
     </nav>
     <div class="rail-footer">
       <div class="save-state" id="save-state">Sin cambios guardados</div>
@@ -505,10 +500,10 @@
       </div>
     </section>
 
-    <!-- ============ ITEMIZADO + MATERIALES ============ -->
+    <!-- ============ ITEMIZADO ============ -->
     <section class="panel" id="panel-itemizado">
-      <h2 class="panel-title">01 · Listado de Actividades (Itemizado) y Materiales</h2>
-      <p class="panel-sub">Replica el formato de la pauta (Ejemplo 3): ITEM, Descripción y Unidad, con filas de <strong>título de sección</strong> para capítulos (ej. "2.0 OBRA GRUESA", sin unidad). El ITEM debe coincidir con la numeración usada en las Especificaciones Técnicas (documento Word). Cada partida incluye directamente debajo su <strong>listado de materiales, herramientas, máquinas y equipos</strong> — todo en una sola planilla, tal como se pidió. Marca <strong>Especialidad</strong> en instalaciones eléctricas/CCDD/CCTV, clima, ascensores o redes de gas: quedan excluidas de la evaluación de <strong>Cubicaciones</strong> (Proyectos de Obras Viales deben cubicar todas las partidas, sin excepción). Puedes pegar un bloque de ITEM/Descripción/Unidad copiado desde Excel directamente sobre los campos (Ctrl+V).</p>
+      <h2 class="panel-title">01 · Listado de Actividades (Itemizado)</h2>
+      <p class="panel-sub">Replica el formato de la pauta (Ejemplo 3): ITEM, Descripción y Unidad, con filas de <strong>título de sección</strong> para capítulos (ej. "2.0 OBRA GRUESA", sin unidad). El ITEM debe coincidir con la numeración usada en las Especificaciones Técnicas (documento Word). Marca <strong>Especialidad</strong> en instalaciones eléctricas/CCDD/CCTV, clima, ascensores o redes de gas: quedan excluidas de la evaluación de <strong>Cubicaciones</strong> (Proyectos de Obras Viales deben cubicar todas las partidas, sin excepción). Puedes pegar un bloque de ITEM/Descripción/Unidad copiado desde Excel directamente sobre los campos (Ctrl+V).</p>
 
       <div class="toolbar">
         <button class="primary small" id="btn-add-item">+ Agregar partida</button>
@@ -570,19 +565,6 @@
           <tbody></tbody>
         </table>
       </div>
-    </section>
-
-    <!-- ============ COTIZACIONES ============ -->
-    <section class="panel" id="panel-cotizaciones">
-      <h2 class="panel-title">04 · Cotizaciones</h2>
-      <p class="panel-sub">Generada automáticamente desde los materiales que agregaste en cada partida (hoja 01). Para <strong>materiales</strong> se exigen 3 proveedores (salvo que marques "proveedor único/exclusivo"); para herramientas, máquinas y equipos basta con 1. Las cotizaciones deben ser del año en curso y respaldarse en PDF — indica el nombre del archivo de respaldo.</p>
-
-      <div class="toolbar">
-        <span class="spacer"></span>
-        <span class="count-chip" id="chip-cotizaciones"></span>
-      </div>
-
-      <div id="cotizaciones-groups"></div>
     </section>
 
     <footer class="legal">
@@ -919,7 +901,7 @@ function estadoCubicacion(item) {
   return estadoCubicacionTramos(item, c);
 }
 
-/* ======================= Motor de validación: EETT / Materiales / Cotizaciones ======================= */
+/* ======================= Motor de validación: EETT ======================= */
 function estadoEett(item) {
   if (esTitulo(item)) return { status: "excluida", issues: ["Fila de título de sección."] };
   const e = state.eett[item.id] || {};
@@ -935,75 +917,6 @@ function estadoEett(item) {
   if (coincidencias.length < 2) issues.push("El detalle no evidencia suficiente especificidad (marca, modelo, formato, color, calidad, etc.).");
   if (!marcado) issues.push("Falta marcar que el cambio está resaltado en amarillo / tachado en el documento Word.");
   return { status: issues.length === 0 ? "correcto" : "mal", issues };
-}
-
-function materialesDeItem(itemId) {
-  return state.materiales.filter((m) => m.itemId === itemId);
-}
-
-function estadoMaterialLinea(m) {
-  const issues = [];
-  if (!m.nombre || !m.nombre.trim()) issues.push("falta nombre");
-  if (!m.tipo) issues.push("falta tipo");
-  if (!m.detalle || m.detalle.trim().length < 8) issues.push("falta detalle (calidad/marca/modelo)");
-  const cant = parseNumeroCL(m.cantidad || "");
-  if (cant === null || cant <= 0) issues.push("falta cantidad válida");
-  if (!m.unidad) issues.push("falta unidad");
-  return issues;
-}
-
-function estadoMaterialesItem(item) {
-  if (esTitulo(item)) return { status: "excluida", issues: ["Fila de título de sección."] };
-  const filas = materialesDeItem(item.id);
-  if (filas.length === 0) {
-    return { status: "faltante", issues: ["No se han registrado materiales/herramientas/máquinas/equipos para esta partida."] };
-  }
-  let invalida = false;
-  const issues = [];
-  filas.forEach((m) => {
-    const iss = estadoMaterialLinea(m);
-    if (iss.length) {
-      invalida = true;
-      issues.push('"' + (m.nombre || "sin nombre") + '": ' + iss.join(", ") + ".");
-    }
-  });
-  return { status: invalida ? "mal" : "correcto", issues };
-}
-
-function estadoCotizacionLinea(m) {
-  const c = state.cotizaciones[m.id] || {};
-  const archivo = (c.archivo || "").trim();
-  const p1 = parseNumeroCL(c.prov1 || "");
-  if (m.tipo === "Material") {
-    const p2 = parseNumeroCL(c.prov2 || "");
-    const p3 = parseNumeroCL(c.prov3 || "");
-    const nada = !c.prov1 && !c.prov2 && !c.prov3 && !archivo;
-    if (nada) return { status: "faltante", issues: ["Sin cotizaciones registradas."] };
-    const issues = [];
-    if (!(p1 > 0)) issues.push("Falta precio Proveedor 01.");
-    if (!m.unico) {
-      if (!(p2 > 0)) issues.push('Falta precio Proveedor 02 (o marca "proveedor único").');
-      if (!(p3 > 0)) issues.push('Falta precio Proveedor 03 (o marca "proveedor único").');
-    }
-    if (!archivo) issues.push("Falta nombre del archivo de respaldo (PDF).");
-    return { status: issues.length ? "mal" : "correcto", issues };
-  }
-  const nada = !c.prov1 && !archivo;
-  if (nada) return { status: "faltante", issues: ["Sin cotización registrada."] };
-  const issues = [];
-  if (!(p1 > 0)) issues.push("Falta precio del proveedor.");
-  if (!archivo) issues.push("Falta nombre del archivo de respaldo (PDF).");
-  return { status: issues.length ? "mal" : "correcto", issues };
-}
-
-function estadoCotizacionesItem(item) {
-  if (esTitulo(item)) return { status: "excluida", issues: ["Fila de título de sección."] };
-  const filas = materialesDeItem(item.id);
-  if (filas.length === 0) return { status: "faltante", issues: ["Sin materiales asociados que cotizar (completa primero la hoja 01)."] };
-  const estados = filas.map(estadoCotizacionLinea);
-  if (estados.every((e) => e.status === "faltante")) return { status: "faltante", issues: ["Ninguna línea tiene cotizaciones registradas."] };
-  if (estados.every((e) => e.status === "correcto")) return { status: "correcto", issues: [] };
-  return { status: "mal", issues: ["Una o más líneas de cotización están incompletas, pendientes o con errores."] };
 }
 
 function resumenEntregable(estadoFn) {
@@ -1040,8 +953,6 @@ function setBadge(id, n, esInformativo) {
 const DELIVERABLES = [
   { key: "cubicaciones", nombre: "02 · Cubicaciones", fn: estadoCubicacion },
   { key: "eett", nombre: "03 · Especificaciones Técnicas", fn: estadoEett },
-  { key: "materiales", nombre: "01 · Listado de Materiales", fn: estadoMaterialesItem },
-  { key: "cotizaciones", nombre: "04 · Cotizaciones", fn: estadoCotizacionesItem },
 ];
 
 function pillHtml(status, issues) {
@@ -1066,7 +977,7 @@ function renderResumen() {
 
   const tiles = [
     { label: "Partidas en itemizado", value: totalPartidas, tone: "" },
-    { label: "Correctas (4 entregables)", value: totalCorrectas, tone: "ok" },
+    { label: "Correctas (2 entregables)", value: totalCorrectas, tone: "ok" },
     { label: "Mal ejecutadas", value: totalMal, tone: "bad" },
     { label: "Faltantes", value: totalFaltantes, tone: "warn" },
     { label: "Avance global", value: totalPosible ? Math.round((totalCorrectas / totalPosible) * 100) + "%" : "—", tone: "" },
@@ -1139,12 +1050,6 @@ function ensureItemRow(index) {
   while (state.itemizado.length <= index) addItemRow();
   return state.itemizado[index];
 }
-function addMaterial(itemId) {
-  const m = { id: nuevoId(), itemId, nombre: "", tipo: "", detalle: "", cantidad: "", unidad: "", unico: false };
-  state.materiales.push(m);
-  return m;
-}
-
 function renderItemizado() {
   const cont = document.getElementById("itemizado-list");
   if (state.itemizado.length === 0) {
@@ -1154,9 +1059,7 @@ function renderItemizado() {
   }
 
   // Cada entrada en state.itemizado se convierte en un <tbody class="item-group">
-  // dentro de la tabla. Esto agrupa la fila de partida y su sub-sección de
-  // materiales en un solo elemento seleccionable, preservando los selectores
-  // .item-group usados en los tests y la lógica de eventos.
+  // dentro de la tabla, preservando los selectores .item-group usados en tests.
   let tbodiesHtml = "";
   state.itemizado.forEach((it, i) => {
     if (esTitulo(it)) {
@@ -1164,23 +1067,11 @@ function renderItemizado() {
         '<tbody class="item-group es-titulo" data-id="' + it.id + '">' +
         '<tr class="titulo-row">' +
         '<td><input type="text" style="font-family:var(--mono);font-weight:700;color:var(--accent)" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="2.0" /></td>' +
-        '<td colspan="4"><input type="text" style="font-weight:800;text-transform:uppercase;letter-spacing:.02em;width:100%" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="TÍTULO DE LA SECCIÓN (ej. OBRA GRUESA)" /></td>' +
+        '<td colspan="3"><input type="text" style="font-weight:800;text-transform:uppercase;letter-spacing:.02em;width:100%" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="TÍTULO DE LA SECCIÓN (ej. OBRA GRUESA)" /></td>' +
         '<td style="padding:0 8px;text-align:right"><button class="rowdel" data-del="' + it.id + '" title="Eliminar título">✕</button></td>' +
         '</tr>' +
         '</tbody>';
     } else {
-      const filasMat = materialesDeItem(it.id);
-      const estMat = estadoMaterialesItem(it);
-      const filasMatHtml = filasMat.map((m) =>
-        '<tr>' +
-        '<td><input type="text" data-mid="' + m.id + '" data-field="nombre" value="' + esc(m.nombre) + '" placeholder="Nombre del material/herramienta" /></td>' +
-        '<td><input type="text" list="dl-tipos" data-mid="' + m.id + '" data-field="tipo" value="' + esc(m.tipo) + '" placeholder="Material" /></td>' +
-        '<td><input type="text" data-mid="' + m.id + '" data-field="detalle" value="' + esc(m.detalle) + '" placeholder="Calidad / marca / modelo / formato / color" /></td>' +
-        '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="cantidad" value="' + esc(m.cantidad) + '" placeholder="0" /></td>' +
-        '<td><input type="text" list="dl-unidades" data-mid="' + m.id + '" data-field="unidad" value="' + esc(m.unidad) + '" placeholder="un" /></td>' +
-        '<td><button class="rowdel" data-delmat="' + m.id + '" title="Eliminar línea">✕</button></td>' +
-        '</tr>'
-      ).join("");
       tbodiesHtml +=
         '<tbody class="item-group" data-id="' + it.id + '">' +
         '<tr class="partida-row">' +
@@ -1188,28 +1079,16 @@ function renderItemizado() {
         '<td><input type="text" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="Descripción de la actividad" /></td>' +
         '<td><input type="text" list="dl-unidades" data-row="' + i + '" data-col="2" data-field="unidad" value="' + esc(it.unidad) + '" placeholder="m2" /></td>' +
         '<td style="text-align:center;padding:4px 8px"><label class="chk"><input type="checkbox" data-item="' + it.id + '" data-check="especialidad" ' + (it.especialidad ? "checked" : "") + ' title="Instalaciones eléctricas/CCDD/CCTV, clima, ascensores, gas"/> Esp.</label></td>' +
-        '<td class="pill-cell">' + pillHtml(estMat.status, estMat.issues) + '</td>' +
         '<td style="padding:0 8px;text-align:right"><button class="rowdel" data-del="' + it.id + '" title="Eliminar partida">✕</button></td>' +
-        '</tr>' +
-        '<tr class="mat-sub">' +
-        '<td colspan="6">' +
-        '<div class="mat-sub-inner">' +
-        '<div class="mat-sub-label">Materiales · Herramientas · Máquinas · Equipos</div>' +
-        (filasMat.length
-          ? '<div class="grid-wrap" style="border:none;border-radius:0;margin-bottom:6px"><table class="grid" style="min-width:0"><thead><tr><th>Nombre</th><th style="width:13%">Tipo</th><th>Detalle (calidad/marca/modelo/formato/color)</th><th style="width:9%">Cant.</th><th style="width:8%">Unidad</th><th style="width:32px"></th></tr></thead><tbody>' + filasMatHtml + '</tbody></table></div>'
-          : '') +
-        '<button class="small" data-addmat="' + it.id + '">+ Agregar material / herramienta / máquina / equipo</button>' +
-        '</div>' +
-        '</td>' +
         '</tr>' +
         '</tbody>';
     }
   });
 
   cont.innerHTML =
-    '<div class="grid-wrap"><table class="grid" style="min-width:520px">' +
-    '<colgroup><col style="width:90px"><col><col style="width:80px"><col style="width:100px"><col style="width:135px"><col style="width:36px"></colgroup>' +
-    '<thead><tr><th>Item</th><th>Descripción</th><th>Unidad</th><th>Especialidad</th><th>Materiales</th><th></th></tr></thead>' +
+    '<div class="grid-wrap"><table class="grid" style="min-width:420px">' +
+    '<colgroup><col style="width:90px"><col><col style="width:80px"><col style="width:80px"><col style="width:36px"></colgroup>' +
+    '<thead><tr><th>Item</th><th>Descripción</th><th>Unidad</th><th>Especialidad</th><th></th></tr></thead>' +
     tbodiesHtml +
     '</table></div>';
   document.getElementById("chip-itemizado").textContent = partidas().length + " partida(s) · " + state.itemizado.filter(esTitulo).length + " título(s) de sección";
@@ -1219,28 +1098,16 @@ const contItemizado = document.getElementById("itemizado-list");
 
 contItemizado.addEventListener("input", (e) => {
   const t = e.target;
-  if (t.matches("[data-row][data-field]")) {
-    const row = parseInt(t.dataset.row, 10);
-    const it = state.itemizado[row];
-    if (!it) return;
-    it[t.dataset.field] = t.value;
-    programarGuardado();
-    document.getElementById("chip-itemizado").textContent = partidas().length + " partida(s) · " + state.itemizado.filter(esTitulo).length + " título(s) de sección";
-    renderResumen();
-    renderCubicaciones();
-    renderEett();
-    renderCotizaciones();
-    return;
-  }
-  if (t.matches("[data-mid][data-field]")) {
-    const m = state.materiales.find((x) => x.id === t.dataset.mid);
-    if (!m) return;
-    m[t.dataset.field] = t.value;
-    programarGuardado();
-    renderItemizado();
-    renderCotizaciones();
-    renderResumen();
-  }
+  if (!t.matches("[data-row][data-field]")) return;
+  const row = parseInt(t.dataset.row, 10);
+  const it = state.itemizado[row];
+  if (!it) return;
+  it[t.dataset.field] = t.value;
+  programarGuardado();
+  document.getElementById("chip-itemizado").textContent = partidas().length + " partida(s) · " + state.itemizado.filter(esTitulo).length + " título(s) de sección";
+  renderResumen();
+  renderCubicaciones();
+  renderEett();
 });
 
 contItemizado.addEventListener("change", (e) => {
@@ -1256,35 +1123,13 @@ contItemizado.addEventListener("change", (e) => {
 
 contItemizado.addEventListener("click", (e) => {
   const del = e.target.closest("[data-del]");
-  if (del) {
-    const id = del.dataset.del;
-    state.itemizado = state.itemizado.filter((it) => it.id !== id);
-    delete state.cubicaciones[id];
-    delete state.eett[id];
-    state.materiales.filter((m) => m.itemId === id).forEach((m) => delete state.cotizaciones[m.id]);
-    state.materiales = state.materiales.filter((m) => m.itemId !== id);
-    programarGuardado();
-    renderTodo();
-    return;
-  }
-  const addBtn = e.target.closest("[data-addmat]");
-  if (addBtn) {
-    addMaterial(addBtn.dataset.addmat);
-    programarGuardado();
-    renderItemizado();
-    renderCotizaciones();
-    renderResumen();
-    return;
-  }
-  const delBtn = e.target.closest("[data-delmat]");
-  if (delBtn) {
-    state.materiales = state.materiales.filter((m) => m.id !== delBtn.dataset.delmat);
-    delete state.cotizaciones[delBtn.dataset.delmat];
-    programarGuardado();
-    renderItemizado();
-    renderCotizaciones();
-    renderResumen();
-  }
+  if (!del) return;
+  const id = del.dataset.del;
+  state.itemizado = state.itemizado.filter((it) => it.id !== id);
+  delete state.cubicaciones[id];
+  delete state.eett[id];
+  programarGuardado();
+  renderTodo();
 });
 
 attachGridPaste(
@@ -1689,18 +1534,15 @@ async function leerPrimeraHoja(file, nombrePreferido) {
   return elegirHojaImportada(resultado, nombrePreferido);
 }
 
-/* ---- Itemizado + Materiales (una sola hoja, formato largo: TITULO/PARTIDA/MATERIAL) ---- */
+/* ---- Itemizado (formato largo: TITULO/PARTIDA) ---- */
 function filasItemizadoCompleto() {
-  const filas = [["TIPO_FILA", "ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD", "MATERIAL_NOMBRE", "MATERIAL_TIPO", "MATERIAL_DETALLE", "MATERIAL_CANTIDAD", "MATERIAL_UNIDAD"]];
+  const filas = [["TIPO_FILA", "ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"]];
   state.itemizado.forEach((it) => {
     if (esTitulo(it)) {
-      filas.push(["TITULO", it.item, it.descripcion, "", "", "", "", "", "", ""]);
-      return;
+      filas.push(["TITULO", it.item, it.descripcion, "", ""]);
+    } else {
+      filas.push(["PARTIDA", it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO"]);
     }
-    filas.push(["PARTIDA", it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO", "", "", "", "", ""]);
-    materialesDeItem(it.id).forEach((m) => {
-      filas.push(["MATERIAL", it.item, "", "", "", m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad]);
-    });
   });
   return filas;
 }
@@ -1721,41 +1563,25 @@ document.getElementById("file-xlsx-itemizado").addEventListener("change", async 
   if (!file) return;
   try {
     const filas = await leerPrimeraHoja(file, "itemizado");
-    let titulos = 0, partidasN = 0, materialesN = 0;
-    const noEncontrados = [];
-    let ultimaPartida = null;
+    let titulos = 0, partidasN = 0;
     filas.forEach((f, i) => {
-      const [tipoFila, itemCodigo, descripcion, unidad, especialidad, matNombre, matTipo, matDetalle, matCantidad, matUnidad] = f;
+      const [tipoFila, itemCodigo, descripcion, unidad, especialidad] = f;
       if (i === 0 && normItemCode(tipoFila) === "tipo_fila") return;
       const tipo = (tipoFila || "").trim().toUpperCase();
       if (tipo === "TITULO") {
         addTituloRow({ item: itemCodigo || "", descripcion: descripcion || "" });
         titulos++;
       } else if (tipo === "PARTIDA") {
-        ultimaPartida = addItemRow({
+        addItemRow({
           item: itemCodigo || "",
           descripcion: descripcion || "",
           unidad: unidad || "",
           especialidad: /^(si|sí|1|true|x)$/i.test((especialidad || "").trim()),
         });
         partidasN++;
-      } else if (tipo === "MATERIAL") {
-        const it = buscarItemPorCodigo(itemCodigo) || ultimaPartida;
-        if (!it) { noEncontrados.push(itemCodigo || "(vacío)"); return; }
-        const m = addMaterial(it.id);
-        m.nombre = matNombre || "";
-        m.tipo = matTipo || "";
-        m.detalle = matDetalle || "";
-        m.cantidad = matCantidad || "";
-        m.unidad = matUnidad || "";
-        materialesN++;
       }
     });
-    let msg = "Itemizado: " + titulos + " título(s), " + partidasN + " partida(s) y " + materialesN + " línea(s) de materiales importadas.";
-    if (noEncontrados.length) {
-      msg += " " + noEncontrados.length + " línea(s) de materiales sin partida asociada: " + noEncontrados.slice(0, 6).join(", ") + ".";
-    }
-    mostrarAviso(msg, noEncontrados.length ? "warn" : "ok");
+    mostrarAviso("Itemizado: " + titulos + " título(s) y " + partidasN + " partida(s) importadas.", "ok");
     programarGuardado();
     renderTodo();
   } catch (err) {
@@ -2090,83 +1916,6 @@ attachGridPaste(
   }
 );
 
-/* ======================= Render: Cotizaciones ======================= */
-function getCot(materialId) {
-  if (!state.cotizaciones[materialId]) state.cotizaciones[materialId] = { prov1: "", prov2: "", prov3: "", archivo: "" };
-  return state.cotizaciones[materialId];
-}
-
-function renderCotizaciones() {
-  const cont = document.getElementById("cotizaciones-groups");
-  const items = partidas();
-  if (items.length === 0 || state.materiales.length === 0) {
-    cont.innerHTML = '<p style="color:var(--ink-faint)">Aún no hay materiales cargados en la pestaña 01 · Itemizado y Materiales.</p>';
-    document.getElementById("chip-cotizaciones").textContent = "";
-    return;
-  }
-  cont.innerHTML = items
-    .map((it) => {
-      const filas = materialesDeItem(it.id);
-      if (filas.length === 0) return "";
-      const est = estadoCotizacionesItem(it);
-      const filasHtml = filas
-        .map((m) => {
-          const c = getCot(m.id);
-          const line = estadoCotizacionLinea(m);
-          const esMaterial = m.tipo === "Material";
-          return (
-            "<tr>" +
-            '<td class="readonly">' + esc(m.nombre || "(sin nombre)") + '<br><span style="color:var(--ink-faint);font-size:10.5px">' + esc(m.tipo || "sin tipo") + "</span></td>" +
-            '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="prov1" value="' + esc(c.prov1) + '" placeholder="$" /></td>' +
-            (esMaterial
-              ? '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="prov2" value="' + esc(c.prov2) + '" placeholder="$" /></td>' +
-                '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="prov3" value="' + esc(c.prov3) + '" placeholder="$" /></td>' +
-                '<td style="text-align:center"><input type="checkbox" data-mid="' + m.id + '" data-check="unico" ' + (m.unico ? "checked" : "") + ' title="Proveedor único/exclusivo" /></td>'
-              : '<td class="readonly" colspan="3" style="color:var(--ink-faint)">— (1 sola cotización)</td>') +
-            '<td><input type="text" data-mid="' + m.id + '" data-field="archivo" value="' + esc(c.archivo) + '" placeholder="Nombre archivo PDF" /></td>' +
-            '<td class="pill-cell">' + pillHtml(line.status, line.issues) + "</td>" +
-            "</tr>"
-          );
-        })
-        .join("");
-      return (
-        '<div class="item-group">' +
-        '<div class="item-group-head">' +
-        '<span class="item-code">' + esc(it.item || "—") + "</span>" +
-        '<span class="item-desc">' + esc(it.descripcion || "(sin descripción)") + "</span>" +
-        pillHtml(est.status, est.issues) +
-        "</div>" +
-        '<div class="grid-wrap" style="border:none;border-radius:0">' +
-        '<table class="grid"><thead><tr><th style="width:22%">Material / Herramienta / Máquina / Equipo</th><th style="width:12%">Proveedor 01</th><th style="width:12%">Proveedor 02</th><th style="width:12%">Proveedor 03</th><th style="width:8%">Único</th><th style="width:16%">Archivo cotización</th><th style="width:120px">Estado</th></tr></thead>' +
-        "<tbody>" + filasHtml + "</tbody></table></div>" +
-        "</div>"
-      );
-    })
-    .join("");
-  const resumen = resumenEntregable(estadoCotizacionesItem);
-  document.getElementById("chip-cotizaciones").textContent = resumen.correctas + " partidas cotizadas · " + resumen.mal + " incompletas · " + resumen.faltantes + " sin cotizar";
-}
-
-const contCotizaciones = document.getElementById("cotizaciones-groups");
-contCotizaciones.addEventListener("input", (e) => {
-  const t = e.target;
-  if (!t.matches("input[data-mid][data-field]")) return;
-  getCot(t.dataset.mid)[t.dataset.field] = t.value;
-  programarGuardado();
-  renderCotizaciones();
-  renderResumen();
-});
-contCotizaciones.addEventListener("change", (e) => {
-  const t = e.target;
-  if (!t.matches('input[type="checkbox"]')) return;
-  const m = state.materiales.find((x) => x.id === t.dataset.mid);
-  if (!m) return;
-  m.unico = t.checked;
-  programarGuardado();
-  renderCotizaciones();
-  renderResumen();
-});
-
 /* ======================= Cabecera: proyecto, export/import, reset ======================= */
 const inputProyecto = document.getElementById("proyecto-nombre");
 inputProyecto.value = state.proyecto || "";
@@ -2222,17 +1971,10 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
     hojaResumen.push([d.nombre, r.total, r.realizadas, r.correctas, r.mal, r.faltantes]);
   });
 
-  const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD", "ESTADO_MATERIALES", "OBSERVACIONES_MATERIALES"]];
+  const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"]];
   state.itemizado.forEach((it) => {
-    if (esTitulo(it)) { hojaItemizado.push(["(título) " + it.item, it.descripcion, "", "", "", ""]); return; }
-    const est = estadoMaterialesItem(it);
-    hojaItemizado.push([it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
-  });
-
-  const hojaMateriales = [["ITEM", "DESCRIPCION_PARTIDA", "NOMBRE", "TIPO", "DETALLE", "CANTIDAD", "UNIDAD"]];
-  state.itemizado.forEach((it) => {
-    if (esTitulo(it)) return;
-    materialesDeItem(it.id).forEach((m) => hojaMateriales.push([it.item, it.descripcion, m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad]));
+    if (esTitulo(it)) { hojaItemizado.push(["(título) " + it.item, it.descripcion, "", ""]); return; }
+    hojaItemizado.push([it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO"]);
   });
 
   const hojaCubicaciones = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR", "ESTADO", "OBSERVACIONES"]];
@@ -2259,26 +2001,11 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
     hojaEett.push([it.item, it.descripcion, e.detalle, e.marcado ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
   });
 
-  const hojaCotizaciones = [["ITEM", "DESCRIPCION_PARTIDA", "MATERIAL", "TIPO", "PROVEEDOR_01", "PROVEEDOR_02", "PROVEEDOR_03", "UNICO", "ARCHIVO", "ESTADO", "OBSERVACIONES"]];
-  partidas().forEach((it) => {
-    materialesDeItem(it.id).forEach((m) => {
-      const c = state.cotizaciones[m.id] || {};
-      const linea = estadoCotizacionLinea(m);
-      hojaCotizaciones.push([
-        it.item, it.descripcion, m.nombre, m.tipo, c.prov1 || "",
-        m.tipo === "Material" ? c.prov2 || "" : "", m.tipo === "Material" ? c.prov3 || "" : "",
-        m.unico ? "SI" : "NO", c.archivo || "", linea.status.toUpperCase(), linea.issues.join(" "),
-      ]);
-    });
-  });
-
   const blob = await generarXlsx([
     { nombre: "Resumen", filas: hojaResumen },
     { nombre: "Itemizado", filas: hojaItemizado },
-    { nombre: "Materiales", filas: hojaMateriales },
     { nombre: "Cubicaciones", filas: hojaCubicaciones },
     { nombre: "EETT", filas: hojaEett },
-    { nombre: "Cotizaciones", filas: hojaCotizaciones },
   ]);
   const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
   descargarBlob(slug + "-formulacion-completa.xlsx", blob);
@@ -2293,7 +2020,6 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
 function renderDependientes() {
   renderCubicaciones();
   renderEett();
-  renderCotizaciones();
 }
 function renderTodo() {
   renderItemizado();
