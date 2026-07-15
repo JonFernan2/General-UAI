@@ -1,0 +1,1403 @@
+<title>Revisor de Formulación de Proyecto de Título</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --paper: #f5f2ea;
+    --paper-raised: #ffffff;
+    --ink: #1b2430;
+    --ink-soft: #565f6c;
+    --ink-faint: #8b8f86;
+    --line: #d9d4c6;
+    --line-strong: #b9b3a0;
+    --accent: #2b5d8c;
+    --accent-ink: #ffffff;
+    --accent-soft: #e2eaf2;
+    --ok: #2e7d46;
+    --ok-soft: #e2f0e6;
+    --warn: #9c6a08;
+    --warn-soft: #f4ead0;
+    --bad: #ab3327;
+    --bad-soft: #f5e0dc;
+    --missing: #5f6672;
+    --missing-soft: #e6e5e0;
+    --radius: 3px;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "Liberation Mono", Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12161c;
+      --paper-raised: #1a212a;
+      --ink: #e9e6dc;
+      --ink-soft: #a7adb6;
+      --ink-faint: #6b7178;
+      --line: #2b323c;
+      --line-strong: #3b4450;
+      --accent: #7db2e6;
+      --accent-ink: #0d1621;
+      --accent-soft: #1e2c3a;
+      --ok: #5cbb7c;
+      --ok-soft: #16281c;
+      --warn: #dba847;
+      --warn-soft: #332707;
+      --bad: #e2766a;
+      --bad-soft: #341a16;
+      --missing: #9aa1ab;
+      --missing-soft: #232830;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12161c;
+    --paper-raised: #1a212a;
+    --ink: #e9e6dc;
+    --ink-soft: #a7adb6;
+    --ink-faint: #6b7178;
+    --line: #2b323c;
+    --line-strong: #3b4450;
+    --accent: #7db2e6;
+    --accent-ink: #0d1621;
+    --accent-soft: #1e2c3a;
+    --ok: #5cbb7c;
+    --ok-soft: #16281c;
+    --warn: #dba847;
+    --warn-soft: #332707;
+    --bad: #e2766a;
+    --bad-soft: #341a16;
+    --missing: #9aa1ab;
+    --missing-soft: #232830;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f2ea;
+    --paper-raised: #ffffff;
+    --ink: #1b2430;
+    --ink-soft: #565f6c;
+    --ink-faint: #8b8f86;
+    --line: #d9d4c6;
+    --line-strong: #b9b3a0;
+    --accent: #2b5d8c;
+    --accent-ink: #ffffff;
+    --accent-soft: #e2eaf2;
+    --ok: #2e7d46;
+    --ok-soft: #e2f0e6;
+    --warn: #9c6a08;
+    --warn-soft: #f4ead0;
+    --bad: #ab3327;
+    --bad-soft: #f5e0dc;
+    --missing: #5f6672;
+    --missing-soft: #e6e5e0;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-attachment: fixed;
+    background-position: -1px -1px;
+  }
+  @media (prefers-color-scheme: dark) { body { background-image: none; } }
+  :root[data-theme="dark"] body { background-image: none; }
+  :root[data-theme="light"] body {
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  }
+
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ---------- Rail (sheet index) ---------- */
+  .rail {
+    width: 224px;
+    flex: 0 0 224px;
+    background: var(--paper-raised);
+    border-right: 1px solid var(--line);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .rail-brand {
+    padding: 0 18px 16px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 10px;
+  }
+  .rail-brand .stamp {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 2px 6px;
+    margin-bottom: 8px;
+  }
+  .rail-brand h1 {
+    font-size: 15px;
+    margin: 0 0 4px;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+  }
+  .rail-brand p {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .rail nav { display: flex; flex-direction: column; padding: 8px 8px; gap: 2px; }
+  .tab-btn {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    font: inherit;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .tab-btn .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    flex: 0 0 auto;
+  }
+  .tab-btn .label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .tab-btn .badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: var(--missing-soft);
+    color: var(--missing);
+  }
+  .tab-btn .badge[data-empty="1"] { visibility: hidden; }
+  .tab-btn:hover { background: var(--accent-soft); color: var(--ink); }
+  .tab-btn.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .tab-btn.active .num, .tab-btn.active .label { color: var(--accent-ink); }
+  .tab-btn.active .badge { background: rgba(255,255,255,0.25); color: var(--accent-ink); }
+
+  .rail-footer { padding: 14px 18px 0; margin-top: 10px; border-top: 1px solid var(--line); }
+  .save-state { font-size: 11px; color: var(--ink-faint); font-family: var(--mono); }
+
+  /* ---------- Main ---------- */
+  .main { flex: 1; min-width: 0; padding: 26px 34px 60px; max-width: 1180px; }
+  .topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .topbar .field { display: flex; flex-direction: column; gap: 3px; }
+  .topbar label.eyebrow { font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-faint); }
+  #proyecto-nombre {
+    font: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    border-bottom: 1px solid var(--line-strong);
+    background: transparent;
+    color: var(--ink);
+    padding: 2px 0;
+    min-width: 320px;
+  }
+  #proyecto-nombre:focus { border-bottom-color: var(--accent); }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+    border-radius: var(--radius);
+    border: 1px solid var(--line-strong);
+    background: var(--paper-raised);
+    color: var(--ink);
+    padding: 7px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button.primary:hover { filter: brightness(1.06); color: var(--accent-ink); }
+  button.ghost { border-color: transparent; background: transparent; }
+  button.small { padding: 4px 8px; font-size: 11.5px; }
+  button.danger:hover { border-color: var(--bad); color: var(--bad); }
+  input[type="file"] { display: none; }
+
+  section.panel { display: none; }
+  section.panel.active { display: block; animation: fade .15s ease-out; }
+  @media (prefers-reduced-motion: reduce) { section.panel.active { animation: none; } }
+  @keyframes fade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+
+  h2.panel-title { font-size: 17px; margin: 0 0 4px; letter-spacing: 0.01em; }
+  p.panel-sub { margin: 0 0 20px; color: var(--ink-soft); font-size: 12.5px; max-width: 74ch; }
+  p.panel-sub code { font-family: var(--mono); background: var(--accent-soft); padding: 0 4px; border-radius: 2px; }
+
+  .note {
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .note strong { color: var(--ink); }
+
+  /* ---------- Dashboard ---------- */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 26px; }
+  .stat-tile {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+  .stat-tile .stat-label { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
+  .stat-tile .stat-value { font-family: var(--mono); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .stat-tile[data-tone="ok"] .stat-value { color: var(--ok); }
+  .stat-tile[data-tone="warn"] .stat-value { color: var(--warn); }
+  .stat-tile[data-tone="bad"] .stat-value { color: var(--bad); }
+  .stat-tile[data-tone="missing"] .stat-value { color: var(--missing); }
+
+  .deliverable-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .deliverable-table th {
+    text-align: left;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .deliverable-table td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .deliverable-table td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .deliverable-table td.name { font-weight: 700; }
+  .stackbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line); min-width: 140px; }
+  .stackbar span { display: block; height: 100%; }
+  .stackbar .seg-ok { background: var(--ok); }
+  .stackbar .seg-mal { background: var(--bad); }
+  .stackbar .seg-falta { background: var(--warn); opacity: 0.55; }
+  .legend { display: flex; gap: 14px; font-size: 11px; color: var(--ink-soft); margin: 4px 0 22px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  .legend .i-ok { background: var(--ok); }
+  .legend .i-mal { background: var(--bad); }
+  .legend .i-falta { background: var(--warn); opacity: 0.65; }
+
+  /* ---------- Grids ---------- */
+  .grid-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); }
+  table.grid { border-collapse: collapse; width: 100%; min-width: 640px; }
+  table.grid th {
+    position: sticky; top: 0;
+    background: var(--paper-raised);
+    text-align: left;
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 700;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--ink);
+    white-space: nowrap;
+  }
+  table.grid td { border-bottom: 1px solid var(--line); padding: 0; vertical-align: top; }
+  table.grid tr:hover td { background: var(--accent-soft); }
+  table.grid td.readonly { padding: 9px 10px; color: var(--ink-soft); font-size: 12.5px; }
+  table.grid td .cellbox { display: block; width: 100%; }
+  table.grid input[type="text"], table.grid textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: var(--ink);
+    padding: 9px 10px;
+    font-size: 12.5px;
+  }
+  table.grid textarea { resize: vertical; min-height: 36px; font-family: var(--mono); }
+  table.grid input.num, table.grid td.col-cantidad input, table.grid td.col-precio input { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  table.grid input:focus, table.grid textarea:focus { background: var(--accent-soft); outline: none; box-shadow: inset 0 0 0 1px var(--accent); }
+  table.grid input::placeholder, table.grid textarea::placeholder { color: var(--ink-faint); font-style: italic; opacity: 1; }
+  table.grid td.status-mal { background: var(--bad-soft); }
+  table.grid td.status-falta { background: transparent; }
+  table.grid tr[data-status="mal"] td.col-status { border-left: 3px solid var(--bad); }
+  table.grid tr[data-status="correcto"] td.col-status { border-left: 3px solid var(--ok); }
+  table.grid tr[data-status="faltante"] td.col-status { border-left: 3px solid var(--missing); }
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em;
+    padding: 3px 8px; border-radius: 20px; white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); }
+  .pill.mal { background: var(--bad-soft); color: var(--bad); }
+  .pill.falta { background: var(--missing-soft); color: var(--missing); }
+  .pill-cell { padding: 9px 10px; }
+  .issues-list { margin: 4px 0 0; padding-left: 16px; font-size: 11px; color: var(--bad); }
+  .rowdel { border: none; background: transparent; color: var(--ink-faint); font-size: 15px; padding: 6px 8px; }
+  .rowdel:hover { color: var(--bad); border: none; }
+  .toolbar { display: flex; gap: 8px; margin: 14px 0 18px; flex-wrap: wrap; align-items: center; }
+  .toolbar .spacer { flex: 1; }
+  .count-chip { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+
+  /* Materiales groups */
+  .item-group { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); margin-bottom: 12px; }
+  .item-group-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .item-group-head .item-code { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 12.5px; }
+  .item-group-head .item-desc { font-size: 12.5px; color: var(--ink-soft); flex: 1; }
+  .item-group table.grid { min-width: 0; }
+  .item-group-foot { padding: 8px 14px; }
+
+  footer.legal { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11px; color: var(--ink-faint); }
+
+  @media (max-width: 860px) {
+    .rail { position: static; height: auto; width: 100%; flex-basis: auto; }
+    .app { flex-direction: column; }
+    .main { padding: 20px; }
+  }
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <div class="rail-brand">
+      <span class="stamp">GUÍA UVM · MOD. LICITACIÓN</span>
+      <h1>Revisor de Formulación de Proyecto de Título</h1>
+      <p>Entrega N°1 — Ingeniería en Construcción</p>
+    </div>
+    <nav id="tab-nav">
+      <button class="tab-btn active" data-tab="resumen"><span class="num">00</span><span class="label">Resumen</span></button>
+      <button class="tab-btn" data-tab="itemizado"><span class="num">01</span><span class="label">Itemizado</span><span class="badge" id="badge-itemizado">0</span></button>
+      <button class="tab-btn" data-tab="cubicaciones"><span class="num">02</span><span class="label">Cubicaciones</span><span class="badge" id="badge-cubicaciones">0</span></button>
+      <button class="tab-btn" data-tab="eett"><span class="num">03</span><span class="label">Espec. Técnicas</span><span class="badge" id="badge-eett">0</span></button>
+      <button class="tab-btn" data-tab="materiales"><span class="num">04</span><span class="label">Materiales</span><span class="badge" id="badge-materiales">0</span></button>
+      <button class="tab-btn" data-tab="cotizaciones"><span class="num">05</span><span class="label">Cotizaciones</span><span class="badge" id="badge-cotizaciones">0</span></button>
+    </nav>
+    <div class="rail-footer">
+      <div class="save-state" id="save-state">Sin cambios guardados</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="field">
+        <label class="eyebrow" for="proyecto-nombre">Proyecto</label>
+        <input id="proyecto-nombre" type="text" placeholder="Nombre del proyecto (licitación Mercado Público)" />
+      </div>
+      <div class="topbar-actions">
+        <button class="ghost small" id="btn-export-json">Guardar progreso (.json)</button>
+        <button class="ghost small" id="btn-import-json">Cargar progreso (.json)</button>
+        <input type="file" id="file-import-json" accept="application/json,.json" />
+        <button class="ghost small danger" id="btn-reset">Borrar todo</button>
+      </div>
+    </div>
+
+    <!-- ============ RESUMEN ============ -->
+    <section class="panel active" id="panel-resumen">
+      <h2 class="panel-title">00 · Resumen general</h2>
+      <p class="panel-sub">Estado consolidado de los 4 entregables de la Entrega N°1 (Formulación de Proyecto de Título, Modalidad Licitación), calculado partida por partida contra el Itemizado.</p>
+
+      <div class="stat-grid" id="stat-grid-global"></div>
+
+      <div class="grid-wrap" style="border:none;background:transparent;">
+        <table class="deliverable-table" id="tabla-resumen">
+          <thead>
+            <tr>
+              <th>Entregable</th>
+              <th style="text-align:right">Partidas</th>
+              <th style="text-align:right">Realizadas</th>
+              <th style="text-align:right">Correctas</th>
+              <th style="text-align:right">Mal ejecutadas</th>
+              <th style="text-align:right">Faltantes</th>
+              <th>Avance</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-resumen-body"></tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <span><i class="i-ok"></i>Correcta</span>
+        <span><i class="i-mal"></i>Mal ejecutada</span>
+        <span><i class="i-falta"></i>Faltante</span>
+      </div>
+
+      <div class="note">
+        <strong>Cómo se calcula:</strong> cada entregable se evalúa partida por partida usando como referencia el Itemizado (hoja 01). Una partida es <em>correcta</em> cuando pasa todas las validaciones automáticas de esa hoja, <em>mal ejecutada</em> cuando tiene datos pero con errores, y <em>faltante</em> cuando no se ha cargado información para ella. En Especificaciones Técnicas la validación es heurística (revisa longitud y palabras clave del detalle) — revísala igual manualmente antes de entregar.
+      </div>
+    </section>
+
+    <!-- ============ ITEMIZADO ============ -->
+    <section class="panel" id="panel-itemizado">
+      <h2 class="panel-title">01 · Listado de Actividades (Itemizado)</h2>
+      <p class="panel-sub">Base de todo el resto de la planilla: ITEM, Descripción y Unidad. El ITEM debe coincidir con la numeración usada en las Especificaciones Técnicas. Puedes pegar directamente un bloque copiado desde Excel (selecciona la celda destino y pega con Ctrl+V).</p>
+
+      <div class="toolbar">
+        <button class="primary small" id="btn-add-item">+ Agregar partida</button>
+        <button class="small" id="btn-import-csv-itemizado">Importar CSV</button>
+        <input type="file" id="file-csv-itemizado" accept=".csv,.tsv,text/csv,text/plain" />
+        <button class="small" id="btn-export-csv-itemizado">Exportar CSV</button>
+        <span class="spacer"></span>
+        <span class="count-chip" id="chip-itemizado"></span>
+      </div>
+
+      <div class="grid-wrap">
+        <table class="grid" id="tabla-itemizado">
+          <thead>
+            <tr><th style="width:110px">Item</th><th>Descripción / Actividad</th><th style="width:130px">Unidad</th><th style="width:36px"></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ CUBICACIONES ============ -->
+    <section class="panel" id="panel-cubicaciones">
+      <h2 class="panel-title">02 · Cubicaciones geométricas</h2>
+      <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>) y la <strong>cantidad</strong> resultante. Se revisa que la fórmula sea geométrica (no un valor suelto), que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales y que las partidas en <code>un</code> sean números enteros — tal como exige la pauta (nunca se redondea al entero superior).</p>
+
+      <div class="toolbar">
+        <span class="spacer"></span>
+        <span class="count-chip" id="chip-cubicaciones"></span>
+      </div>
+
+      <div class="grid-wrap">
+        <table class="grid" id="tabla-cubicaciones">
+          <thead>
+            <tr>
+              <th style="width:90px">Item</th>
+              <th style="width:220px">Descripción</th>
+              <th style="width:70px">Un.</th>
+              <th style="width:260px">Memoria de cálculo (desarrollo geométrico)</th>
+              <th style="width:120px">Cantidad</th>
+              <th style="width:180px">Estado</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ EETT ============ -->
+    <section class="panel" id="panel-eett">
+      <h2 class="panel-title">03 · Especificaciones Técnicas modificadas</h2>
+      <p class="panel-sub">Las EETT se entregan en Word; aquí registras, por partida, el resumen de la modificación aplicada para poder auditar cobertura y nivel de detalle. Marca la casilla cuando el cambio esté correctamente resaltado en amarillo (agregado) o tachado (eliminado) en el documento Word.</p>
+
+      <div class="toolbar">
+        <span class="spacer"></span>
+        <span class="count-chip" id="chip-eett"></span>
+      </div>
+
+      <div class="grid-wrap">
+        <table class="grid" id="tabla-eett">
+          <thead>
+            <tr>
+              <th style="width:90px">Item</th>
+              <th style="width:220px">Descripción</th>
+              <th>Detalle de la modificación (calidad, marca, modelo, formato, color…)</th>
+              <th style="width:80px">Marcado✓</th>
+              <th style="width:180px">Estado</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ MATERIALES ============ -->
+    <section class="panel" id="panel-materiales">
+      <h2 class="panel-title">04 · Listado de Materiales, Herramientas, Máquinas y Equipos</h2>
+      <p class="panel-sub">Agrupado por partida. Agrega una línea por cada material, herramienta, máquina o equipo que la partida requiera; este listado alimenta automáticamente la hoja de Cotizaciones.</p>
+
+      <div class="toolbar">
+        <span class="spacer"></span>
+        <span class="count-chip" id="chip-materiales"></span>
+      </div>
+
+      <div id="materiales-groups"></div>
+    </section>
+
+    <!-- ============ COTIZACIONES ============ -->
+    <section class="panel" id="panel-cotizaciones">
+      <h2 class="panel-title">05 · Cotizaciones</h2>
+      <p class="panel-sub">Generada automáticamente desde el Listado de Materiales (04). Para <strong>materiales</strong> se exigen 3 proveedores (salvo que marques "proveedor único/exclusivo"); para herramientas, máquinas y equipos basta con 1. Las cotizaciones deben ser del año en curso y respaldarse en PDF — indica el nombre del archivo de respaldo.</p>
+
+      <div class="toolbar">
+        <span class="spacer"></span>
+        <span class="count-chip" id="chip-cotizaciones"></span>
+      </div>
+
+      <div id="cotizaciones-groups"></div>
+    </section>
+
+    <footer class="legal">
+      Basado en la "Guía de Desarrollo Asignatura Proyecto de Título" (Ingeniería en Construcción, Universidad Viña del Mar) — sección 1.1 Formulación de Proyecto de Título, Entrega N°1. Herramienta de apoyo no oficial: la validación de Especificaciones Técnicas es heurística: revisa siempre el documento completo antes de entregar. Todos los datos se guardan solo en este navegador (localStorage); usa "Guardar progreso" para respaldarlos.
+    </footer>
+  </main>
+</div>
+
+<datalist id="dl-unidades">
+  <option value="ml">Metros lineales</option>
+  <option value="m2">Metros cuadrados</option>
+  <option value="m3">Metros cúbicos</option>
+  <option value="kg">Kilos</option>
+  <option value="un">Unidades</option>
+  <option value="pm">Pulgadas madereras</option>
+  <option value="gl">Global</option>
+</datalist>
+<datalist id="dl-tipos">
+  <option value="Material"></option>
+  <option value="Herramienta"></option>
+  <option value="Máquina"></option>
+  <option value="Equipo"></option>
+</datalist>
+
+<script>
+"use strict";
+
+/* ======================= Constantes ======================= */
+const UNIDADES = ["ml", "m2", "m3", "kg", "un", "pm", "gl"];
+const TIPOS_MATERIAL = ["Material", "Herramienta", "Máquina", "Equipo"];
+const PALABRAS_CLAVE_EETT = [
+  "marca", "modelo", "formato", "color", "tipo", "espesor",
+  "calidad", "dimensi", "proveedor", "resistencia", "material", "acabado",
+];
+const STORAGE_KEY = "revisor-formulacion-proyecto-v1";
+
+/* ======================= Estado ======================= */
+let state = cargarEstado();
+
+function estadoInicial() {
+  return {
+    proyecto: "",
+    nextId: 1,
+    itemizado: [],
+    cubicaciones: {},
+    eett: {},
+    materiales: [],
+    cotizaciones: {},
+  };
+}
+
+function nuevoId() {
+  return "id" + state.nextId++;
+}
+
+function cargarEstado() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return estadoInicial();
+    const datos = JSON.parse(raw);
+    return Object.assign(estadoInicial(), datos);
+  } catch (e) {
+    return estadoInicial();
+  }
+}
+
+let guardarTimeout = null;
+function programarGuardado() {
+  clearTimeout(guardarTimeout);
+  guardarTimeout = setTimeout(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const el = document.getElementById("save-state");
+    const ahora = new Date();
+    el.textContent = "Guardado automático · " + ahora.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+  }, 250);
+}
+
+/* ======================= Utilidades numéricas ======================= */
+function normalizarSeparadores(str) {
+  let s = String(str).trim();
+  if (s.includes(",") && s.includes(".")) return s.replace(/\./g, "").replace(",", ".");
+  if (s.includes(",")) return s.replace(",", ".");
+  return s;
+}
+
+function parseNumeroCL(str) {
+  if (str === null || str === undefined) return null;
+  const s = normalizarSeparadores(str);
+  if (s === "") return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+function contarDecimalesTexto(str) {
+  const s = normalizarSeparadores(str);
+  const partes = s.split(".");
+  return partes[1] ? partes[1].length : 0;
+}
+
+function esEntero(n) {
+  return Math.abs(n - Math.round(n)) < 1e-9;
+}
+
+function formatNum(n) {
+  return Number(n).toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+}
+
+function evaluarFormula(texto) {
+  let expr = String(texto).trim();
+  expr = expr.replace(/[×xX]/g, "*").replace(/,/g, ".").replace(/\^/g, "**");
+  if (!/^[0-9+\-*/().\s]+$/.test(expr)) {
+    return { ok: false, error: "contiene caracteres no permitidos (usa solo números, x, +, -, /, paréntesis)" };
+  }
+  if (!/[0-9]/.test(expr)) return { ok: false, error: "no contiene números" };
+  try {
+    const value = Function('"use strict"; return (' + expr + ");")();
+    if (typeof value !== "number" || !Number.isFinite(value)) return { ok: false, error: "no se pudo evaluar" };
+    return { ok: true, value };
+  } catch (e) {
+    return { ok: false, error: "expresión inválida" };
+  }
+}
+
+function tieneDesarrolloGeometrico(memoria) {
+  const normalizado = memoria.replace(/[×xX]/g, "*").replace(/,/g, ".");
+  const operadores = normalizado.match(/[+\-*/]/g);
+  const numeros = normalizado.match(/\d+(\.\d+)?/g);
+  return !!(operadores && operadores.length >= 1 && numeros && numeros.length >= 2);
+}
+
+function esc(str) {
+  const d = document.createElement("div");
+  d.textContent = str === null || str === undefined ? "" : String(str);
+  return d.innerHTML.replace(/"/g, "&quot;");
+}
+
+/* ======================= Motor de validación ======================= */
+function estadoCubicacion(item) {
+  const c = state.cubicaciones[item.id] || {};
+  const memoria = (c.memoria || "").trim();
+  const cantidadStr = (c.cantidad || "").trim();
+  if (!memoria && !cantidadStr) {
+    return { status: "faltante", issues: ["Sin memoria de cálculo ni cantidad registrada."] };
+  }
+  const issues = [];
+  if (!memoria) issues.push("Falta la memoria de cálculo (desarrollo geométrico).");
+  if (!cantidadStr) issues.push("Falta la cantidad cubicada.");
+
+  let valorFormula = null;
+  let formulaValida = false;
+  if (memoria) {
+    const res = evaluarFormula(memoria);
+    if (!res.ok) {
+      issues.push("La memoria de cálculo no es una expresión aritmética válida (" + res.error + ").");
+    } else if (!tieneDesarrolloGeometrico(memoria)) {
+      issues.push("La memoria de cálculo no muestra un desarrollo geométrico (dimensión × dimensión), es solo un valor.");
+    } else {
+      valorFormula = res.value;
+      formulaValida = true;
+    }
+  }
+
+  let cantidadNum = null;
+  if (cantidadStr) {
+    cantidadNum = parseNumeroCL(cantidadStr);
+    if (cantidadNum === null) issues.push("La cantidad no es un número válido.");
+  }
+
+  if (formulaValida && cantidadNum !== null) {
+    const tol = Math.max(0.01, 0.005 * Math.abs(valorFormula));
+    if (Math.abs(cantidadNum - valorFormula) > tol) {
+      issues.push("La memoria de cálculo da " + formatNum(valorFormula) + " pero la cantidad indicada es " + formatNum(cantidadNum) + ".");
+    }
+  }
+
+  if (cantidadStr && cantidadNum !== null) {
+    if (item.unidad === "un") {
+      if (!esEntero(cantidadNum)) issues.push('Unidad "un" no se fracciona: la cantidad debe ser un número entero.');
+    } else if (contarDecimalesTexto(cantidadStr) < 2) {
+      issues.push("Debe registrarse con al menos 2 decimales exactos (nunca redondear al entero superior).");
+    }
+  }
+
+  return { status: issues.length === 0 ? "correcto" : "mal", issues };
+}
+
+function estadoEett(item) {
+  const e = state.eett[item.id] || {};
+  const detalle = (e.detalle || "").trim();
+  const marcado = !!e.marcado;
+  if (!detalle) {
+    return { status: "faltante", issues: ["No se ha registrado el detalle de la modificación de EETT para esta partida."] };
+  }
+  const issues = [];
+  const detalleLower = detalle.toLowerCase();
+  const coincidencias = PALABRAS_CLAVE_EETT.filter((p) => detalleLower.includes(p));
+  if (detalle.length < 15) issues.push("El detalle es muy breve; describe la modificación con mayor precisión.");
+  if (coincidencias.length < 2) issues.push("El detalle no evidencia suficiente especificidad (marca, modelo, formato, color, calidad, etc.).");
+  if (!marcado) issues.push("Falta marcar que el cambio está resaltado en amarillo / tachado en el documento Word.");
+  return { status: issues.length === 0 ? "correcto" : "mal", issues };
+}
+
+function materialesDeItem(itemId) {
+  return state.materiales.filter((m) => m.itemId === itemId);
+}
+
+function estadoMaterialLinea(m) {
+  const issues = [];
+  if (!m.nombre || !m.nombre.trim()) issues.push("falta nombre");
+  if (!m.tipo) issues.push("falta tipo");
+  if (!m.detalle || m.detalle.trim().length < 8) issues.push("falta detalle (calidad/marca/modelo)");
+  const cant = parseNumeroCL(m.cantidad || "");
+  if (cant === null || cant <= 0) issues.push("falta cantidad válida");
+  if (!m.unidad) issues.push("falta unidad");
+  return issues;
+}
+
+function estadoMaterialesItem(item) {
+  const filas = materialesDeItem(item.id);
+  if (filas.length === 0) {
+    return { status: "faltante", issues: ["No se han registrado materiales/herramientas/máquinas/equipos para esta partida."] };
+  }
+  let invalida = false;
+  const issues = [];
+  filas.forEach((m) => {
+    const iss = estadoMaterialLinea(m);
+    if (iss.length) {
+      invalida = true;
+      issues.push('"' + (m.nombre || "sin nombre") + '": ' + iss.join(", ") + ".");
+    }
+  });
+  return { status: invalida ? "mal" : "correcto", issues };
+}
+
+function estadoCotizacionLinea(m) {
+  const c = state.cotizaciones[m.id] || {};
+  const archivo = (c.archivo || "").trim();
+  const p1 = parseNumeroCL(c.prov1 || "");
+  if (m.tipo === "Material") {
+    const p2 = parseNumeroCL(c.prov2 || "");
+    const p3 = parseNumeroCL(c.prov3 || "");
+    const nada = !c.prov1 && !c.prov2 && !c.prov3 && !archivo;
+    if (nada) return { status: "faltante", issues: ["Sin cotizaciones registradas."] };
+    const issues = [];
+    if (!(p1 > 0)) issues.push("Falta precio Proveedor 01.");
+    if (!m.unico) {
+      if (!(p2 > 0)) issues.push('Falta precio Proveedor 02 (o marca "proveedor único").');
+      if (!(p3 > 0)) issues.push('Falta precio Proveedor 03 (o marca "proveedor único").');
+    }
+    if (!archivo) issues.push("Falta nombre del archivo de respaldo (PDF).");
+    return { status: issues.length ? "mal" : "correcto", issues };
+  }
+  const nada = !c.prov1 && !archivo;
+  if (nada) return { status: "faltante", issues: ["Sin cotización registrada."] };
+  const issues = [];
+  if (!(p1 > 0)) issues.push("Falta precio del proveedor.");
+  if (!archivo) issues.push("Falta nombre del archivo de respaldo (PDF).");
+  return { status: issues.length ? "mal" : "correcto", issues };
+}
+
+function estadoCotizacionesItem(item) {
+  const filas = materialesDeItem(item.id);
+  if (filas.length === 0) return { status: "faltante", issues: ["Sin materiales asociados que cotizar (completa primero la hoja 04)."] };
+  const estados = filas.map(estadoCotizacionLinea);
+  if (estados.every((e) => e.status === "faltante")) return { status: "faltante", issues: ["Ninguna línea tiene cotizaciones registradas."] };
+  if (estados.every((e) => e.status === "correcto")) return { status: "correcto", issues: [] };
+  return { status: "mal", issues: ["Una o más líneas de cotización están incompletas, pendientes o con errores."] };
+}
+
+function resumenEntregable(estadoFn) {
+  const filas = state.itemizado.map(estadoFn);
+  const total = filas.length;
+  const correctas = filas.filter((f) => f.status === "correcto").length;
+  const mal = filas.filter((f) => f.status === "mal").length;
+  const faltantes = filas.filter((f) => f.status === "faltante").length;
+  return { total, realizadas: correctas + mal, correctas, mal, faltantes };
+}
+
+/* ======================= Paste genérico (pegar desde Excel) ======================= */
+function attachGridPaste(tbody, onCell, afterPaste) {
+  tbody.addEventListener("paste", (e) => {
+    const target = e.target;
+    if (!target.matches("input,textarea")) return;
+    const text = (e.clipboardData || window.clipboardData).getData("text");
+    if (!text || (!text.includes("\t") && !text.includes("\n"))) return;
+    e.preventDefault();
+    const startRow = parseInt(target.dataset.row, 10);
+    const startCol = parseInt(target.dataset.col, 10);
+    const lineas = text.replace(/\r/g, "").split("\n");
+    while (lineas.length && lineas[lineas.length - 1] === "") lineas.pop();
+    lineas.forEach((linea, ri) => {
+      linea.split("\t").forEach((val, ci) => {
+        onCell(startRow + ri, startCol + ci, val);
+      });
+    });
+    if (afterPaste) afterPaste();
+  });
+}
+
+/* ======================= Render: pestañas ======================= */
+function activarTab(nombre) {
+  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === nombre));
+  document.querySelectorAll("section.panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + nombre));
+}
+
+document.getElementById("tab-nav").addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab-btn");
+  if (btn) activarTab(btn.dataset.tab);
+});
+
+function setBadge(id, n, esInformativo) {
+  const el = document.getElementById(id);
+  el.textContent = n;
+  el.dataset.empty = n === 0 && !esInformativo ? "1" : "0";
+}
+
+/* ======================= Render: Resumen ======================= */
+const DELIVERABLES = [
+  { key: "cubicaciones", nombre: "02 · Cubicaciones", fn: estadoCubicacion },
+  { key: "eett", nombre: "03 · Especificaciones Técnicas", fn: estadoEett },
+  { key: "materiales", nombre: "04 · Listado de Materiales", fn: estadoMaterialesItem },
+  { key: "cotizaciones", nombre: "05 · Cotizaciones", fn: estadoCotizacionesItem },
+];
+
+function renderResumen() {
+  const resumenes = DELIVERABLES.map((d) => Object.assign({}, d, resumenEntregable(d.fn)));
+  const totalPartidas = state.itemizado.length;
+
+  const totalCorrectas = resumenes.reduce((a, r) => a + r.correctas, 0);
+  const totalMal = resumenes.reduce((a, r) => a + r.mal, 0);
+  const totalFaltantes = resumenes.reduce((a, r) => a + r.faltantes, 0);
+  const totalPosible = resumenes.reduce((a, r) => a + r.total, 0);
+
+  const tiles = [
+    { label: "Partidas en itemizado", value: totalPartidas, tone: "" },
+    { label: "Correctas (4 entregables)", value: totalCorrectas, tone: "ok" },
+    { label: "Mal ejecutadas", value: totalMal, tone: "bad" },
+    { label: "Faltantes", value: totalFaltantes, tone: "warn" },
+    { label: "Avance global", value: totalPosible ? Math.round((totalCorrectas / totalPosible) * 100) + "%" : "—", tone: "" },
+  ];
+  document.getElementById("stat-grid-global").innerHTML = tiles
+    .map((t) => '<div class="stat-tile" data-tone="' + t.tone + '"><div class="stat-label">' + esc(t.label) + '</div><div class="stat-value">' + esc(t.value) + "</div></div>")
+    .join("");
+
+  const body = document.getElementById("tabla-resumen-body");
+  if (totalPartidas === 0) {
+    body.innerHTML = '<tr><td colspan="7" style="padding:16px;color:var(--ink-faint)">Aún no hay partidas cargadas. Comienza en la pestaña <strong>01 · Itemizado</strong>.</td></tr>';
+  } else {
+    body.innerHTML = resumenes
+      .map((r) => {
+        const pctOk = r.total ? (r.correctas / r.total) * 100 : 0;
+        const pctMal = r.total ? (r.mal / r.total) * 100 : 0;
+        const pctFalta = r.total ? (r.faltantes / r.total) * 100 : 0;
+        return (
+          "<tr><td class=\"name\">" + esc(r.nombre) + "</td>" +
+          '<td class="num">' + r.total + "</td>" +
+          '<td class="num">' + r.realizadas + "</td>" +
+          '<td class="num" style="color:var(--ok)">' + r.correctas + "</td>" +
+          '<td class="num" style="color:var(--bad)">' + r.mal + "</td>" +
+          '<td class="num" style="color:var(--warn)">' + r.faltantes + "</td>" +
+          '<td><div class="stackbar"><span class="seg-ok" style="width:' + pctOk + '%"></span><span class="seg-mal" style="width:' + pctMal + '%"></span><span class="seg-falta" style="width:' + pctFalta + '%"></span></div></td></tr>'
+        );
+      })
+      .join("");
+  }
+
+  setBadge("badge-itemizado", totalPartidas, true);
+  DELIVERABLES.forEach((d) => {
+    const r = resumenEntregable(d.fn);
+    setBadge("badge-" + d.key, r.mal + r.faltantes, false);
+  });
+}
+
+/* ======================= Render: Itemizado ======================= */
+function addItemRow(valores) {
+  const it = Object.assign({ id: nuevoId(), item: "", descripcion: "", unidad: "" }, valores || {});
+  state.itemizado.push(it);
+  return it;
+}
+function ensureItemRow(index) {
+  while (state.itemizado.length <= index) addItemRow();
+  return state.itemizado[index];
+}
+
+function renderItemizado() {
+  const tbody = document.querySelector("#tabla-itemizado tbody");
+  tbody.innerHTML = state.itemizado
+    .map(
+      (it, i) =>
+        "<tr>" +
+        '<td><input type="text" class="num" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="1.1" /></td>' +
+        '<td><input type="text" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="Descripción de la actividad" /></td>' +
+        '<td><input type="text" list="dl-unidades" data-row="' + i + '" data-col="2" data-field="unidad" value="' + esc(it.unidad) + '" placeholder="m2" /></td>' +
+        '<td><button class="rowdel" data-del="' + it.id + '" title="Eliminar partida">✕</button></td>' +
+        "</tr>"
+    )
+    .join("");
+  document.getElementById("chip-itemizado").textContent = state.itemizado.length + " partida(s)";
+}
+
+document.querySelector("#tabla-itemizado tbody").addEventListener("input", (e) => {
+  const t = e.target;
+  if (!t.matches("input")) return;
+  const row = parseInt(t.dataset.row, 10);
+  const it = state.itemizado[row];
+  if (!it) return;
+  it[t.dataset.field] = t.value;
+  document.getElementById("chip-itemizado").textContent = state.itemizado.length + " partida(s)";
+  programarGuardado();
+  renderResumen();
+  renderDependientes();
+});
+
+document.querySelector("#tabla-itemizado tbody").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-del]");
+  if (!btn) return;
+  const id = btn.dataset.del;
+  state.itemizado = state.itemizado.filter((it) => it.id !== id);
+  delete state.cubicaciones[id];
+  delete state.eett[id];
+  state.materiales = state.materiales.filter((m) => m.itemId !== id);
+  programarGuardado();
+  renderTodo();
+});
+
+attachGridPaste(
+  document.querySelector("#tabla-itemizado tbody"),
+  (r, c, val) => {
+    const it = ensureItemRow(r);
+    const campos = ["item", "descripcion", "unidad"];
+    if (campos[c]) it[campos[c]] = val;
+  },
+  () => {
+    programarGuardado();
+    renderTodo();
+  }
+);
+
+document.getElementById("btn-add-item").addEventListener("click", () => {
+  addItemRow();
+  programarGuardado();
+  renderTodo();
+});
+
+/* ---- Importar / Exportar CSV Itemizado ---- */
+function parseCSV(texto) {
+  const sep = texto.indexOf("\t") !== -1 && texto.indexOf(",") === -1 ? "\t" : ",";
+  return texto
+    .replace(/\r/g, "")
+    .split("\n")
+    .filter((l) => l.trim() !== "")
+    .map((line) => {
+      // separador simple; suficiente para exports típicos de Excel/Sheets sin comillas complejas
+      if (sep === ",") {
+        const out = [];
+        let cur = "";
+        let enComillas = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') enComillas = !enComillas;
+          else if (ch === "," && !enComillas) { out.push(cur); cur = ""; }
+          else cur += ch;
+        }
+        out.push(cur);
+        return out.map((c) => c.trim());
+      }
+      return line.split("\t").map((c) => c.trim());
+    });
+}
+
+document.getElementById("btn-import-csv-itemizado").addEventListener("click", () => document.getElementById("file-csv-itemizado").click());
+document.getElementById("file-csv-itemizado").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const filas = parseCSV(String(reader.result));
+    filas.forEach((f, i) => {
+      const [item, descripcion, unidad] = f;
+      if (i === 0 && /item/i.test(item || "") && /descrip/i.test(descripcion || "")) return; // salta encabezado
+      if (!item && !descripcion) return;
+      addItemRow({ item: item || "", descripcion: descripcion || "", unidad: unidad || "" });
+    });
+    programarGuardado();
+    renderTodo();
+    e.target.value = "";
+  };
+  reader.readAsText(file, "utf-8");
+});
+
+function descargarArchivo(nombre, contenido, tipo) {
+  const blob = new Blob([contenido], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function csvEscape(v) {
+  const s = v === null || v === undefined ? "" : String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+document.getElementById("btn-export-csv-itemizado").addEventListener("click", () => {
+  const filas = [["ITEM", "DESCRIPCION", "UNIDAD"]].concat(state.itemizado.map((it) => [it.item, it.descripcion, it.unidad]));
+  descargarArchivo("itemizado.csv", filas.map((f) => f.map(csvEscape).join(",")).join("\n"), "text/csv;charset=utf-8");
+});
+
+/* ======================= Render: Cubicaciones ======================= */
+function getCub(itemId) {
+  if (!state.cubicaciones[itemId]) state.cubicaciones[itemId] = { memoria: "", cantidad: "" };
+  return state.cubicaciones[itemId];
+}
+
+function pillHtml(status, issues) {
+  const cfg = { correcto: ["ok", "✓ Correcta"], mal: ["mal", "⚠ Revisar"], faltante: ["falta", "— Faltante"] }[status];
+  const title = issues && issues.length ? ' title="' + esc(issues.join(" ")) + '"' : "";
+  return '<span class="pill ' + cfg[0] + '"' + title + ">" + cfg[1] + "</span>";
+}
+
+function renderCubicaciones() {
+  const tbody = document.querySelector("#tabla-cubicaciones tbody");
+  if (state.itemizado.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</td></tr>';
+    document.getElementById("chip-cubicaciones").textContent = "";
+    return;
+  }
+  tbody.innerHTML = state.itemizado
+    .map((it, i) => {
+      const c = getCub(it.id);
+      const est = estadoCubicacion(it);
+      return (
+        '<tr data-status="' + est.status + '">' +
+        '<td class="readonly col-status">' + esc(it.item) + "</td>" +
+        '<td class="readonly">' + esc(it.descripcion) + "</td>" +
+        '<td class="readonly">' + esc(it.unidad) + "</td>" +
+        '<td><textarea rows="1" data-row="' + i + '" data-col="0" data-item="' + it.id + '" data-field="memoria" placeholder="12,35 x 8,20 x 0,10">' + esc(c.memoria) + "</textarea></td>" +
+        '<td><input type="text" class="num" data-row="' + i + '" data-col="1" data-item="' + it.id + '" data-field="cantidad" value="' + esc(c.cantidad) + '" placeholder="0,00" /></td>' +
+        '<td class="pill-cell">' + pillHtml(est.status, est.issues) + "</td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+  const resumen = resumenEntregable(estadoCubicacion);
+  document.getElementById("chip-cubicaciones").textContent = resumen.correctas + " correctas · " + resumen.mal + " con errores · " + resumen.faltantes + " faltantes";
+}
+
+document.querySelector("#tabla-cubicaciones tbody").addEventListener("input", (e) => {
+  const t = e.target;
+  if (!t.matches("input,textarea")) return;
+  const rec = getCub(t.dataset.item);
+  rec[t.dataset.field] = t.value;
+  programarGuardado();
+  renderCubicaciones();
+  renderResumen();
+});
+
+attachGridPaste(
+  document.querySelector("#tabla-cubicaciones tbody"),
+  (r, c, val) => {
+    if (r >= state.itemizado.length) return;
+    const it = state.itemizado[r];
+    const rec = getCub(it.id);
+    if (c === 0) rec.memoria = val;
+    else if (c === 1) rec.cantidad = val;
+  },
+  () => {
+    programarGuardado();
+    renderCubicaciones();
+    renderResumen();
+  }
+);
+
+/* ======================= Render: EETT ======================= */
+function getEett(itemId) {
+  if (!state.eett[itemId]) state.eett[itemId] = { detalle: "", marcado: false };
+  return state.eett[itemId];
+}
+
+function renderEett() {
+  const tbody = document.querySelector("#tabla-eett tbody");
+  if (state.itemizado.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</td></tr>';
+    document.getElementById("chip-eett").textContent = "";
+    return;
+  }
+  tbody.innerHTML = state.itemizado
+    .map((it, i) => {
+      const e = getEett(it.id);
+      const est = estadoEett(it);
+      return (
+        '<tr data-status="' + est.status + '">' +
+        '<td class="readonly col-status">' + esc(it.item) + "</td>" +
+        '<td class="readonly">' + esc(it.descripcion) + "</td>" +
+        '<td><textarea rows="1" data-row="' + i + '" data-col="0" data-item="' + it.id + '" data-field="detalle" placeholder="Ej: lana mineral AislánGlass proveedor Volcán, 50mm, formato rollo, tipo R100">' + esc(e.detalle) + "</textarea></td>" +
+        '<td style="text-align:center;padding:9px 0"><input type="checkbox" data-item="' + it.id + '" data-check="marcado" ' + (e.marcado ? "checked" : "") + " /></td>" +
+        '<td class="pill-cell">' + pillHtml(est.status, est.issues) + "</td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+  const resumen = resumenEntregable(estadoEett);
+  document.getElementById("chip-eett").textContent = resumen.correctas + " correctas · " + resumen.mal + " con errores · " + resumen.faltantes + " faltantes";
+}
+
+document.querySelector("#tabla-eett tbody").addEventListener("input", (e) => {
+  const t = e.target;
+  if (!t.matches("textarea")) return;
+  getEett(t.dataset.item).detalle = t.value;
+  programarGuardado();
+  renderEett();
+  renderResumen();
+});
+document.querySelector("#tabla-eett tbody").addEventListener("change", (e) => {
+  const t = e.target;
+  if (!t.matches('input[type="checkbox"]')) return;
+  getEett(t.dataset.item).marcado = t.checked;
+  programarGuardado();
+  renderEett();
+  renderResumen();
+});
+attachGridPaste(
+  document.querySelector("#tabla-eett tbody"),
+  (r, c, val) => {
+    if (r >= state.itemizado.length || c !== 0) return;
+    getEett(state.itemizado[r].id).detalle = val;
+  },
+  () => {
+    programarGuardado();
+    renderEett();
+    renderResumen();
+  }
+);
+
+/* ======================= Render: Materiales ======================= */
+function addMaterial(itemId) {
+  const m = { id: nuevoId(), itemId, nombre: "", tipo: "", detalle: "", cantidad: "", unidad: "", unico: false };
+  state.materiales.push(m);
+  return m;
+}
+
+function renderMateriales() {
+  const cont = document.getElementById("materiales-groups");
+  if (state.itemizado.length === 0) {
+    cont.innerHTML = '<p style="color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</p>';
+    document.getElementById("chip-materiales").textContent = "";
+    return;
+  }
+  cont.innerHTML = state.itemizado
+    .map((it) => {
+      const filas = materialesDeItem(it.id);
+      const est = estadoMaterialesItem(it);
+      const filasHtml = filas
+        .map(
+          (m) =>
+            "<tr>" +
+            '<td><input type="text" data-mid="' + m.id + '" data-field="nombre" value="' + esc(m.nombre) + '" placeholder="Nombre del material/herramienta" /></td>' +
+            '<td><input type="text" list="dl-tipos" data-mid="' + m.id + '" data-field="tipo" value="' + esc(m.tipo) + '" placeholder="Material" /></td>' +
+            '<td><input type="text" data-mid="' + m.id + '" data-field="detalle" value="' + esc(m.detalle) + '" placeholder="Calidad / marca / modelo / formato / color" /></td>' +
+            '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="cantidad" value="' + esc(m.cantidad) + '" placeholder="0" /></td>' +
+            '<td><input type="text" list="dl-unidades" data-mid="' + m.id + '" data-field="unidad" value="' + esc(m.unidad) + '" placeholder="un" /></td>' +
+            '<td><button class="rowdel" data-delmat="' + m.id + '" title="Eliminar línea">✕</button></td>' +
+            "</tr>"
+        )
+        .join("");
+      return (
+        '<div class="item-group">' +
+        '<div class="item-group-head">' +
+        '<span class="item-code">' + esc(it.item || "—") + "</span>" +
+        '<span class="item-desc">' + esc(it.descripcion || "(sin descripción)") + "</span>" +
+        pillHtml(est.status, est.issues) +
+        "</div>" +
+        '<div class="grid-wrap" style="border:none;border-radius:0">' +
+        '<table class="grid"><thead><tr><th style="width:22%">Nombre</th><th style="width:14%">Tipo</th><th>Detalle</th><th style="width:10%">Cant.</th><th style="width:9%">Unidad</th><th style="width:32px"></th></tr></thead>' +
+        "<tbody>" + filasHtml + "</tbody></table></div>" +
+        '<div class="item-group-foot"><button class="small" data-addmat="' + it.id + '">+ Agregar material/herramienta</button></div>' +
+        "</div>"
+      );
+    })
+    .join("");
+  const resumen = resumenEntregable(estadoMaterialesItem);
+  document.getElementById("chip-materiales").textContent = resumen.correctas + " partidas completas · " + resumen.mal + " con líneas incompletas · " + resumen.faltantes + " sin materiales";
+}
+
+const contMateriales = document.getElementById("materiales-groups");
+contMateriales.addEventListener("click", (e) => {
+  const addBtn = e.target.closest("[data-addmat]");
+  if (addBtn) {
+    addMaterial(addBtn.dataset.addmat);
+    programarGuardado();
+    renderMateriales();
+    renderCotizaciones();
+    renderResumen();
+    return;
+  }
+  const delBtn = e.target.closest("[data-delmat]");
+  if (delBtn) {
+    state.materiales = state.materiales.filter((m) => m.id !== delBtn.dataset.delmat);
+    delete state.cotizaciones[delBtn.dataset.delmat];
+    programarGuardado();
+    renderMateriales();
+    renderCotizaciones();
+    renderResumen();
+  }
+});
+contMateriales.addEventListener("input", (e) => {
+  const t = e.target;
+  if (!t.matches("input[data-mid]")) return;
+  const m = state.materiales.find((x) => x.id === t.dataset.mid);
+  if (!m) return;
+  m[t.dataset.field] = t.value;
+  programarGuardado();
+  renderMateriales();
+  renderCotizaciones();
+  renderResumen();
+});
+
+/* ======================= Render: Cotizaciones ======================= */
+function getCot(materialId) {
+  if (!state.cotizaciones[materialId]) state.cotizaciones[materialId] = { prov1: "", prov2: "", prov3: "", archivo: "" };
+  return state.cotizaciones[materialId];
+}
+
+function renderCotizaciones() {
+  const cont = document.getElementById("cotizaciones-groups");
+  if (state.itemizado.length === 0 || state.materiales.length === 0) {
+    cont.innerHTML = '<p style="color:var(--ink-faint)">Aún no hay materiales cargados en la pestaña 04 · Materiales.</p>';
+    document.getElementById("chip-cotizaciones").textContent = "";
+    return;
+  }
+  cont.innerHTML = state.itemizado
+    .map((it) => {
+      const filas = materialesDeItem(it.id);
+      if (filas.length === 0) return "";
+      const est = estadoCotizacionesItem(it);
+      const filasHtml = filas
+        .map((m) => {
+          const c = getCot(m.id);
+          const line = estadoCotizacionLinea(m);
+          const esMaterial = m.tipo === "Material";
+          return (
+            "<tr>" +
+            '<td class="readonly">' + esc(m.nombre || "(sin nombre)") + '<br><span style="color:var(--ink-faint);font-size:10.5px">' + esc(m.tipo || "sin tipo") + "</span></td>" +
+            '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="prov1" value="' + esc(c.prov1) + '" placeholder="$" /></td>' +
+            (esMaterial
+              ? '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="prov2" value="' + esc(c.prov2) + '" placeholder="$" /></td>' +
+                '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="prov3" value="' + esc(c.prov3) + '" placeholder="$" /></td>' +
+                '<td style="text-align:center"><input type="checkbox" data-mid="' + m.id + '" data-check="unico" ' + (m.unico ? "checked" : "") + ' title="Proveedor único/exclusivo" /></td>'
+              : '<td class="readonly" colspan="3" style="color:var(--ink-faint)">— (1 sola cotización)</td>') +
+            '<td><input type="text" data-mid="' + m.id + '" data-field="archivo" value="' + esc(c.archivo) + '" placeholder="Nombre archivo PDF" /></td>' +
+            '<td class="pill-cell">' + pillHtml(line.status, line.issues) + "</td>" +
+            "</tr>"
+          );
+        })
+        .join("");
+      return (
+        '<div class="item-group">' +
+        '<div class="item-group-head">' +
+        '<span class="item-code">' + esc(it.item || "—") + "</span>" +
+        '<span class="item-desc">' + esc(it.descripcion || "(sin descripción)") + "</span>" +
+        pillHtml(est.status, est.issues) +
+        "</div>" +
+        '<div class="grid-wrap" style="border:none;border-radius:0">' +
+        '<table class="grid"><thead><tr><th style="width:22%">Material / Herramienta / Máquina / Equipo</th><th style="width:12%">Proveedor 01</th><th style="width:12%">Proveedor 02</th><th style="width:12%">Proveedor 03</th><th style="width:8%">Único</th><th style="width:16%">Archivo cotización</th><th style="width:120px">Estado</th></tr></thead>' +
+        "<tbody>" + filasHtml + "</tbody></table></div>" +
+        "</div>"
+      );
+    })
+    .join("");
+  const resumen = resumenEntregable(estadoCotizacionesItem);
+  document.getElementById("chip-cotizaciones").textContent = resumen.correctas + " partidas cotizadas · " + resumen.mal + " incompletas · " + resumen.faltantes + " sin cotizar";
+}
+
+const contCotizaciones = document.getElementById("cotizaciones-groups");
+contCotizaciones.addEventListener("input", (e) => {
+  const t = e.target;
+  if (!t.matches("input[data-mid][data-field]")) return;
+  getCot(t.dataset.mid)[t.dataset.field] = t.value;
+  programarGuardado();
+  renderCotizaciones();
+  renderResumen();
+});
+contCotizaciones.addEventListener("change", (e) => {
+  const t = e.target;
+  if (!t.matches('input[type="checkbox"]')) return;
+  const m = state.materiales.find((x) => x.id === t.dataset.mid);
+  if (!m) return;
+  m.unico = t.checked;
+  programarGuardado();
+  renderCotizaciones();
+  renderResumen();
+});
+
+/* ======================= Cabecera: proyecto, export/import, reset ======================= */
+const inputProyecto = document.getElementById("proyecto-nombre");
+inputProyecto.value = state.proyecto || "";
+inputProyecto.addEventListener("input", () => {
+  state.proyecto = inputProyecto.value;
+  programarGuardado();
+});
+
+document.getElementById("btn-export-json").addEventListener("click", () => {
+  const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
+  descargarArchivo(slug + "-formulacion-progreso.json", JSON.stringify(state, null, 2), "application/json");
+});
+document.getElementById("btn-import-json").addEventListener("click", () => document.getElementById("file-import-json").click());
+document.getElementById("file-import-json").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const datos = JSON.parse(String(reader.result));
+      if (!confirm("Esto reemplazará los datos actuales cargados en el navegador por los del archivo. ¿Continuar?")) return;
+      state = Object.assign(estadoInicial(), datos);
+      inputProyecto.value = state.proyecto || "";
+      programarGuardado();
+      renderTodo();
+    } catch (err) {
+      alert("El archivo no tiene un formato JSON válido de esta planilla.");
+    }
+  };
+  reader.readAsText(file, "utf-8");
+  e.target.value = "";
+});
+document.getElementById("btn-reset").addEventListener("click", () => {
+  if (!confirm("Se borrarán todos los datos cargados en este navegador. ¿Continuar?")) return;
+  state = estadoInicial();
+  inputProyecto.value = "";
+  localStorage.removeItem(STORAGE_KEY);
+  renderTodo();
+});
+
+/* ======================= Orquestación ======================= */
+function renderDependientes() {
+  renderCubicaciones();
+  renderEett();
+  renderMateriales();
+  renderCotizaciones();
+}
+function renderTodo() {
+  renderItemizado();
+  renderDependientes();
+  renderResumen();
+}
+
+renderTodo();
+</script>
