@@ -475,7 +475,7 @@
     <!-- ============ CUBICACIONES ============ -->
     <section class="panel" id="panel-cubicaciones">
       <h2 class="panel-title">02 · Cubicaciones geométricas</h2>
-      <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>) y la <strong>cantidad</strong> resultante. Se revisa que la fórmula sea geométrica (no un valor suelto), que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales y que las partidas en <code>un</code> sean números enteros — tal como exige la pauta (nunca se redondea al entero superior).</p>
+      <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>), la <strong>cantidad</strong> resultante y el <strong>archivo de respaldo</strong> del cálculo (planilla, apunte escaneado o PDF). Se revisa que la fórmula corresponda a la geometría de la partida — <strong>2 dimensiones (base × altura) para m²</strong> y <strong>3 dimensiones (largo × ancho × alto) para m³</strong> — que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales y que las partidas en <code>un</code> sean números enteros — tal como exige la pauta (nunca se redondea al entero superior). Si la partida es un círculo, triángulo, trapecio u otra forma no rectangular, marca <strong>"forma irregular"</strong> para omitir el chequeo de N° de dimensiones (el resto de las validaciones se sigue aplicando).</p>
 
       <div class="toolbar">
         <span class="spacer"></span>
@@ -489,8 +489,10 @@
               <th style="width:90px">Item</th>
               <th style="width:220px">Descripción</th>
               <th style="width:70px">Un.</th>
-              <th style="width:260px">Memoria de cálculo (desarrollo geométrico)</th>
-              <th style="width:120px">Cantidad</th>
+              <th style="width:230px">Memoria de cálculo (desarrollo geométrico)</th>
+              <th style="width:110px">Cantidad</th>
+              <th style="width:170px">Archivo de respaldo</th>
+              <th style="width:60px">Irreg.</th>
               <th style="width:180px">Estado</th>
             </tr>
           </thead>
@@ -686,16 +688,104 @@ function esc(str) {
 }
 
 /* ======================= Motor de validación ======================= */
+
+// Separa una expresión en sus términos aditivos de nivel superior (fuera de paréntesis),
+// para poder evaluar cada "pieza" de una cubicación compuesta (ej. dos rectángulos sumados).
+function terminosAditivos(expr) {
+  const terminos = [];
+  let actual = "";
+  let profundidad = 0;
+  for (let i = 0; i < expr.length; i++) {
+    const ch = expr[i];
+    if (ch === "(") { profundidad++; actual += ch; continue; }
+    if (ch === ")") { profundidad--; actual += ch; continue; }
+    if (profundidad === 0 && (ch === "+" || ch === "-")) {
+      const anterior = actual.length ? actual[actual.length - 1] : "";
+      const esOperadorPrevio = anterior === "" || "+-*/(".includes(anterior);
+      if (!esOperadorPrevio) {
+        terminos.push(actual);
+        actual = "";
+        continue;
+      }
+    }
+    actual += ch;
+  }
+  if (actual.trim() !== "") terminos.push(actual);
+  return terminos.length ? terminos : [expr];
+}
+
+// Cuenta cuántas dimensiones se están multiplicando en un término (ej. "12.35*8.20*0.10" = 3).
+// Ignora divisiones por constantes de ajuste de forma (/2 triángulo, /3 pirámide/cono, /4 círculo por diámetro)
+// y el factor π, que no representan una dimensión física adicional.
+function factoresDeTermino(termino) {
+  let profundidad = 0;
+  let factorActual = "";
+  const factores = [];
+  for (let i = 0; i < termino.length; i++) {
+    const ch = termino[i];
+    if (ch === "(") { profundidad++; factorActual += ch; continue; }
+    if (ch === ")") { profundidad--; factorActual += ch; continue; }
+    if (profundidad === 0 && (ch === "*" || ch === "/")) {
+      factores.push({ valor: factorActual, divide: ch === "/" });
+      factorActual = "";
+      continue;
+    }
+    factorActual += ch;
+  }
+  factores.push({ valor: factorActual, divide: false });
+
+  let n = 0;
+  factores.forEach((f) => {
+    const v = f.valor.replace(/^\(+|\)+$/g, "").trim();
+    if (v === "") return;
+    const esConstanteAjuste = f.divide && /^(2|3|4)(\.0+)?$/.test(v);
+    const esPi = /^(pi|3[.,]1416?\d*)$/i.test(v);
+    if (esConstanteAjuste || esPi) return;
+    n++;
+  });
+  return n;
+}
+
+// Verifica que el desarrollo corresponda a la geometría esperada según la unidad de la partida:
+// área (m2) = 2 dimensiones (base x altura); volumen (m3) = 3 dimensiones (largo x ancho x alto).
+function validarFormaGeometrica(item, memoria, esIrregular) {
+  const unidad = item.unidad;
+  const expr = memoria.replace(/[×xX]/g, "*").replace(/,/g, ".").replace(/\s+/g, "");
+  const terminos = terminosAditivos(expr);
+  const conteos = terminos.map(factoresDeTermino);
+
+  if (unidad === "m2" || unidad === "m3") {
+    if (esIrregular) return null; // círculo/triángulo/trapecio: se omite el chequeo estricto de N° de dimensiones
+    const esperado = unidad === "m2" ? 2 : 3;
+    const nombre = unidad === "m2" ? "área (base × altura)" : "volumen (largo × ancho × alto)";
+    const incorrectos = conteos.filter((n) => n !== esperado);
+    if (incorrectos.length > 0) {
+      return (
+        "La memoria de cálculo no corresponde a un cálculo de " + nombre + " — cada término debe multiplicar " +
+        "exactamente " + esperado + " dimensiones (obtuve " + incorrectos.join(", ") + "). Si es un círculo, " +
+        "triángulo, trapecio u otra forma no rectangular, marca la casilla \"forma irregular\"."
+      );
+    }
+  } else if (unidad === "ml") {
+    if (conteos.some((n) => n >= 3)) {
+      return "El desarrollo multiplica 3 o más dimensiones, lo que corresponde a un cálculo de área o volumen, no a una partida lineal (ml). Revisa la unidad o el desarrollo.";
+    }
+  }
+  return null;
+}
+
 function estadoCubicacion(item) {
   const c = state.cubicaciones[item.id] || {};
   const memoria = (c.memoria || "").trim();
   const cantidadStr = (c.cantidad || "").trim();
-  if (!memoria && !cantidadStr) {
-    return { status: "faltante", issues: ["Sin memoria de cálculo ni cantidad registrada."] };
+  const respaldo = (c.respaldo || "").trim();
+  if (!memoria && !cantidadStr && !respaldo) {
+    return { status: "faltante", issues: ["Sin memoria de cálculo, cantidad ni respaldo registrados."] };
   }
   const issues = [];
   if (!memoria) issues.push("Falta la memoria de cálculo (desarrollo geométrico).");
   if (!cantidadStr) issues.push("Falta la cantidad cubicada.");
+  if (!respaldo) issues.push("Falta el archivo de respaldo del cálculo (planilla, apunte escaneado o PDF).");
 
   let valorFormula = null;
   let formulaValida = false;
@@ -708,6 +798,8 @@ function estadoCubicacion(item) {
     } else {
       valorFormula = res.value;
       formulaValida = true;
+      const problemaForma = validarFormaGeometrica(item, memoria, !!c.irregular);
+      if (problemaForma) issues.push(problemaForma);
     }
   }
 
@@ -1063,7 +1155,7 @@ document.getElementById("btn-export-csv-itemizado").addEventListener("click", ()
 
 /* ======================= Render: Cubicaciones ======================= */
 function getCub(itemId) {
-  if (!state.cubicaciones[itemId]) state.cubicaciones[itemId] = { memoria: "", cantidad: "" };
+  if (!state.cubicaciones[itemId]) state.cubicaciones[itemId] = { memoria: "", cantidad: "", respaldo: "", irregular: false };
   return state.cubicaciones[itemId];
 }
 
@@ -1076,7 +1168,7 @@ function pillHtml(status, issues) {
 function renderCubicaciones() {
   const tbody = document.querySelector("#tabla-cubicaciones tbody");
   if (state.itemizado.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</td></tr>';
     document.getElementById("chip-cubicaciones").textContent = "";
     return;
   }
@@ -1091,6 +1183,8 @@ function renderCubicaciones() {
         '<td class="readonly">' + esc(it.unidad) + "</td>" +
         '<td><textarea rows="1" data-row="' + i + '" data-col="0" data-item="' + it.id + '" data-field="memoria" placeholder="12,35 x 8,20 x 0,10">' + esc(c.memoria) + "</textarea></td>" +
         '<td><input type="text" class="num" data-row="' + i + '" data-col="1" data-item="' + it.id + '" data-field="cantidad" value="' + esc(c.cantidad) + '" placeholder="0,00" /></td>' +
+        '<td><input type="text" data-row="' + i + '" data-col="2" data-item="' + it.id + '" data-field="respaldo" value="' + esc(c.respaldo) + '" placeholder="Cub_' + esc(it.item || "X") + '.pdf" /></td>' +
+        '<td style="text-align:center;padding:9px 0"><input type="checkbox" data-item="' + it.id + '" data-check="irregular" title="Círculo / triángulo / trapecio u otra forma no rectangular" ' + (c.irregular ? "checked" : "") + " /></td>" +
         '<td class="pill-cell">' + pillHtml(est.status, est.issues) + "</td>" +
         "</tr>"
       );
@@ -1109,6 +1203,14 @@ document.querySelector("#tabla-cubicaciones tbody").addEventListener("input", (e
   renderCubicaciones();
   renderResumen();
 });
+document.querySelector("#tabla-cubicaciones tbody").addEventListener("change", (e) => {
+  const t = e.target;
+  if (!t.matches('input[type="checkbox"]')) return;
+  getCub(t.dataset.item).irregular = t.checked;
+  programarGuardado();
+  renderCubicaciones();
+  renderResumen();
+});
 
 attachGridPaste(
   document.querySelector("#tabla-cubicaciones tbody"),
@@ -1118,6 +1220,7 @@ attachGridPaste(
     const rec = getCub(it.id);
     if (c === 0) rec.memoria = val;
     else if (c === 1) rec.cantidad = val;
+    else if (c === 2) rec.respaldo = val;
   },
   () => {
     programarGuardado();
