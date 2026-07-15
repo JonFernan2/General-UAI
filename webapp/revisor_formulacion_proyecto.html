@@ -373,6 +373,21 @@
 
   footer.legal { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11px; color: var(--ink-faint); }
 
+  #toast-aviso {
+    position: fixed; right: 20px; bottom: 20px; max-width: 400px;
+    background: var(--paper-raised); border: 1px solid var(--line-strong);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius); padding: 12px 14px; font-size: 12.5px; line-height: 1.5;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .15s ease, transform .15s ease;
+    z-index: 50; white-space: pre-line;
+  }
+  #toast-aviso.visible { opacity: 1; transform: none; }
+  #toast-aviso[data-tono="warn"] { border-left-color: var(--warn); }
+  #toast-aviso[data-tono="ok"] { border-left-color: var(--ok); }
+  @media (prefers-reduced-motion: reduce) { #toast-aviso { transition: none; } }
+
   @media (max-width: 860px) {
     .rail { position: static; height: auto; width: 100%; flex-basis: auto; }
     .app { flex-direction: column; }
@@ -477,7 +492,14 @@
       <h2 class="panel-title">02 · Cubicaciones geométricas</h2>
       <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>), la <strong>cantidad</strong> resultante y el <strong>archivo de respaldo</strong> del cálculo (planilla, apunte escaneado o PDF). Se revisa que la fórmula corresponda a la geometría de la partida — <strong>2 dimensiones (base × altura) para m²</strong> y <strong>3 dimensiones (largo × ancho × alto) para m³</strong> — que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales y que las partidas en <code>un</code> sean números enteros — tal como exige la pauta (nunca se redondea al entero superior). Si la partida es un círculo, triángulo, trapecio u otra forma no rectangular, marca <strong>"forma irregular"</strong> para omitir el chequeo de N° de dimensiones (el resto de las validaciones se sigue aplicando).</p>
 
+      <div class="note">
+        <strong>Formato de carga homogéneo:</strong> descarga la plantilla CSV (ya trae el mismo orden de partidas que tu Itemizado), complétala en Excel y vuelve a importarla. Cada fila se empareja por el código de <strong>ITEM</strong>, no por su posición — así el orden en que vengan las filas del archivo no importa, y cualquier código que no calce con el Itemizado se te informa al importar.
+      </div>
+
       <div class="toolbar">
+        <button class="small" id="btn-plantilla-csv-cubicaciones">Descargar plantilla/datos CSV</button>
+        <button class="small" id="btn-import-csv-cubicaciones">Importar CSV</button>
+        <input type="file" id="file-csv-cubicaciones" accept=".csv,.tsv,text/csv,text/plain" />
         <span class="spacer"></span>
         <span class="count-chip" id="chip-cubicaciones"></span>
       </div>
@@ -507,6 +529,9 @@
       <p class="panel-sub">Las EETT se entregan en Word; aquí registras, por partida, el resumen de la modificación aplicada para poder auditar cobertura y nivel de detalle. Marca la casilla cuando el cambio esté correctamente resaltado en amarillo (agregado) o tachado (eliminado) en el documento Word.</p>
 
       <div class="toolbar">
+        <button class="small" id="btn-plantilla-csv-eett">Descargar plantilla/datos CSV</button>
+        <button class="small" id="btn-import-csv-eett">Importar CSV</button>
+        <input type="file" id="file-csv-eett" accept=".csv,.tsv,text/csv,text/plain" />
         <span class="spacer"></span>
         <span class="count-chip" id="chip-eett"></span>
       </div>
@@ -533,6 +558,9 @@
       <p class="panel-sub">Agrupado por partida. Agrega una línea por cada material, herramienta, máquina o equipo que la partida requiera; este listado alimenta automáticamente la hoja de Cotizaciones.</p>
 
       <div class="toolbar">
+        <button class="small" id="btn-plantilla-csv-materiales">Descargar plantilla/datos CSV</button>
+        <button class="small" id="btn-import-csv-materiales">Importar CSV</button>
+        <input type="file" id="file-csv-materiales" accept=".csv,.tsv,text/csv,text/plain" />
         <span class="spacer"></span>
         <span class="count-chip" id="chip-materiales"></span>
       </div>
@@ -1087,7 +1115,10 @@ document.getElementById("btn-add-item").addEventListener("click", () => {
 
 /* ---- Importar / Exportar CSV Itemizado ---- */
 function parseCSV(texto) {
-  const sep = texto.indexOf("\t") !== -1 && texto.indexOf(",") === -1 ? "\t" : ",";
+  // Si el archivo trae tabulaciones (ej. exportado como "texto delimitado por tabulaciones"),
+  // se usan como separador de columna. Esto evita ambigüedad con las comas decimales chilenas
+  // (12,35) cuando el archivo no viene con los campos numéricos entre comillas.
+  const sep = texto.indexOf("\t") !== -1 ? "\t" : ",";
   return texto
     .replace(/\r/g, "")
     .split("\n")
@@ -1151,6 +1182,163 @@ function csvEscape(v) {
 document.getElementById("btn-export-csv-itemizado").addEventListener("click", () => {
   const filas = [["ITEM", "DESCRIPCION", "UNIDAD"]].concat(state.itemizado.map((it) => [it.item, it.descripcion, it.unidad]));
   descargarArchivo("itemizado.csv", filas.map((f) => f.map(csvEscape).join(",")).join("\n"), "text/csv;charset=utf-8");
+});
+
+/* ======================= Import/Export CSV emparejado por ITEM ======================= */
+// A diferencia del pegado desde Excel (posicional), estas importaciones emparejan
+// cada fila con su partida por el código de ITEM, sin importar el orden del archivo.
+function normItemCode(s) {
+  return String(s || "").trim().toLowerCase();
+}
+function buscarItemPorCodigo(codigo) {
+  const norm = normItemCode(codigo);
+  if (!norm) return null;
+  return state.itemizado.find((it) => normItemCode(it.item) === norm) || null;
+}
+
+function importarCsvPorItem(texto, onFila) {
+  const filas = parseCSV(texto);
+  let importadas = 0;
+  const noEncontrados = [];
+  filas.forEach((f, i) => {
+    const itemCodigo = f[0];
+    const resto = f.slice(1);
+    if (i === 0 && normItemCode(itemCodigo) === "item") return; // salta fila de encabezado
+    if (!itemCodigo && resto.every((c) => !c)) return; // fila vacía
+    const it = buscarItemPorCodigo(itemCodigo);
+    if (!it) { noEncontrados.push(itemCodigo || "(vacío)"); return; }
+    onFila(it, resto);
+    importadas++;
+  });
+  return { importadas, noEncontrados };
+}
+
+function mostrarAviso(mensaje, tono) {
+  let el = document.getElementById("toast-aviso");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast-aviso";
+    document.body.appendChild(el);
+  }
+  el.textContent = mensaje;
+  el.dataset.tono = tono || "info";
+  el.classList.add("visible");
+  clearTimeout(mostrarAviso._t);
+  mostrarAviso._t = setTimeout(() => el.classList.remove("visible"), 7000);
+}
+
+function reportarImportacion(nombreHoja, resultado) {
+  if (resultado.noEncontrados.length === 0) {
+    mostrarAviso(nombreHoja + ": se importaron " + resultado.importadas + " fila(s) correctamente.", "ok");
+  } else {
+    const listado = resultado.noEncontrados.slice(0, 8).join(", ") + (resultado.noEncontrados.length > 8 ? "…" : "");
+    mostrarAviso(
+      nombreHoja + ": se importaron " + resultado.importadas + " fila(s). " + resultado.noEncontrados.length +
+        " fila(s) no calzan con ningún ITEM del Itemizado: " + listado +
+        ". Corrige el código en el CSV o agrégalo primero en 01 · Itemizado.",
+      "warn"
+    );
+  }
+}
+
+function exportarCsvPorItem(nombreArchivo, encabezados, filaFn) {
+  const filas = [encabezados].concat(state.itemizado.map((it) => [it.item].concat(filaFn(it))));
+  descargarArchivo(nombreArchivo, filas.map((f) => f.map(csvEscape).join(",")).join("\n"), "text/csv;charset=utf-8");
+}
+
+/* ---- Cubicaciones ---- */
+function leerCub(itemId) {
+  return state.cubicaciones[itemId] || { memoria: "", cantidad: "", respaldo: "", irregular: false };
+}
+document.getElementById("btn-plantilla-csv-cubicaciones").addEventListener("click", () => {
+  exportarCsvPorItem("cubicaciones.csv", ["ITEM", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR"], (it) => {
+    const c = leerCub(it.id);
+    return [c.memoria, c.cantidad, c.respaldo, c.irregular ? "SI" : "NO"];
+  });
+});
+document.getElementById("btn-import-csv-cubicaciones").addEventListener("click", () => document.getElementById("file-csv-cubicaciones").click());
+document.getElementById("file-csv-cubicaciones").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const resultado = importarCsvPorItem(String(reader.result), (it, resto) => {
+      const [memoria, cantidad, respaldo, irregular] = resto;
+      const rec = getCub(it.id);
+      rec.memoria = memoria || "";
+      rec.cantidad = cantidad || "";
+      rec.respaldo = respaldo || "";
+      rec.irregular = /^(si|sí|1|true|x)$/i.test((irregular || "").trim());
+    });
+    reportarImportacion("Cubicaciones", resultado);
+    programarGuardado();
+    renderTodo();
+    e.target.value = "";
+  };
+  reader.readAsText(file, "utf-8");
+});
+
+/* ---- EETT ---- */
+function leerEett(itemId) {
+  return state.eett[itemId] || { detalle: "", marcado: false };
+}
+document.getElementById("btn-plantilla-csv-eett").addEventListener("click", () => {
+  exportarCsvPorItem("especificaciones-tecnicas.csv", ["ITEM", "DETALLE", "MARCADO"], (it) => {
+    const e = leerEett(it.id);
+    return [e.detalle, e.marcado ? "SI" : "NO"];
+  });
+});
+document.getElementById("btn-import-csv-eett").addEventListener("click", () => document.getElementById("file-csv-eett").click());
+document.getElementById("file-csv-eett").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const resultado = importarCsvPorItem(String(reader.result), (it, resto) => {
+      const [detalle, marcado] = resto;
+      const rec = getEett(it.id);
+      rec.detalle = detalle || "";
+      rec.marcado = /^(si|sí|1|true|x)$/i.test((marcado || "").trim());
+    });
+    reportarImportacion("Especificaciones Técnicas", resultado);
+    programarGuardado();
+    renderTodo();
+    e.target.value = "";
+  };
+  reader.readAsText(file, "utf-8");
+});
+
+/* ---- Materiales (varias líneas por ITEM: la exportación/importación no es 1 fila por partida) ---- */
+document.getElementById("btn-plantilla-csv-materiales").addEventListener("click", () => {
+  const filas = [["ITEM", "NOMBRE", "TIPO", "DETALLE", "CANTIDAD", "UNIDAD"]].concat(
+    state.materiales.map((m) => {
+      const it = state.itemizado.find((x) => x.id === m.itemId);
+      return [it ? it.item : "", m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad];
+    })
+  );
+  descargarArchivo("materiales.csv", filas.map((f) => f.map(csvEscape).join(",")).join("\n"), "text/csv;charset=utf-8");
+});
+document.getElementById("btn-import-csv-materiales").addEventListener("click", () => document.getElementById("file-csv-materiales").click());
+document.getElementById("file-csv-materiales").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const resultado = importarCsvPorItem(String(reader.result), (it, resto) => {
+      const [nombre, tipo, detalle, cantidad, unidad] = resto;
+      const m = addMaterial(it.id);
+      m.nombre = nombre || "";
+      m.tipo = tipo || "";
+      m.detalle = detalle || "";
+      m.cantidad = cantidad || "";
+      m.unidad = unidad || "";
+    });
+    reportarImportacion("Materiales", resultado);
+    programarGuardado();
+    renderTodo();
+    e.target.value = "";
+  };
+  reader.readAsText(file, "utf-8");
 });
 
 /* ======================= Render: Cubicaciones ======================= */
