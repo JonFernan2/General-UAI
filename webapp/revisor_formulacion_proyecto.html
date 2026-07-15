@@ -436,6 +436,29 @@
   .eval-section h3 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 16px; font-weight: 700; }
   .eval-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
 
+  /* ---- Botón de doble clic para confirmar ---- */
+  .danger-pending { background: var(--bad-soft) !important; color: var(--bad) !important; border-color: var(--bad) !important; }
+
+  /* ---- Plantillas para estudiantes ---- */
+  .plantillas-section { margin-bottom: 22px; padding: 16px 18px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius); }
+  .plantillas-section .psec-title { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 0 0 4px; }
+  .plantillas-section p { margin: 0 0 12px; font-size: 12px; color: var(--ink-soft); }
+  .plantillas-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* ---- Nota sugerida ---- */
+  .nota-box { display: flex; align-items: center; gap: 20px; padding: 14px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); margin: 16px 0 22px; }
+  .nota-valor { font-family: var(--mono); font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; min-width: 72px; }
+  .nota-valor[data-tone="ok"] { color: var(--ok); }
+  .nota-valor[data-tone="warn"] { color: var(--warn); }
+  .nota-valor[data-tone="bad"] { color: var(--bad); }
+  .nota-valor[data-tone=""] { color: var(--ink-faint); }
+  .nota-meta { display: flex; flex-direction: column; gap: 4px; }
+  .nota-eyebrow { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+  .nota-detalle { font-size: 12px; color: var(--ink-soft); }
+  .nota-barra-wrap { flex: 1; }
+  .nota-barra { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line); }
+  .nota-barra span { display: block; height: 100%; transition: width .3s; }
+
   /* ---- Modal comparación de entregas ---- */
   .cmp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px; overflow-y: auto; }
   .cmp-backdrop.hidden { display: none; }
@@ -476,7 +499,9 @@
         <input id="proyecto-nombre" type="text" placeholder="Nombre del proyecto (licitación Mercado Público)" />
       </div>
       <div class="topbar-actions">
-        <button class="ghost small" id="btn-comparar-entregas" title="Cargar múltiples JSON de estudiantes y ver tabla comparativa">Comparar entregas</button>
+        <button class="ghost small" id="btn-comparar-entregas" title="Comparar múltiples entregas de estudiantes">Comparar entregas</button>
+        <button class="primary small" id="btn-cargar-entrega" title="Cargar planilla xlsx enviada por el estudiante">Cargar entrega (.xlsx)</button>
+        <input type="file" id="file-cargar-entrega" accept=".xlsx" />
         <button class="ghost small" id="btn-export-json">Guardar progreso (.json)</button>
         <button class="ghost small" id="btn-import-json">Cargar progreso (.json)</button>
         <input type="file" id="file-import-json" accept="application/json,.json" />
@@ -520,6 +545,30 @@
 
       <div class="note">
         <strong>Cómo se calcula:</strong> cada entregable se evalúa partida por partida usando como referencia el Itemizado. Una partida es <em>correcta</em> cuando pasa todas las validaciones automáticas de esa hoja, <em>mal ejecutada</em> cuando tiene datos pero con errores, y <em>faltante</em> cuando no se ha cargado información para ella. Las filas de <strong>título de sección</strong> y las partidas de <strong>especialidad</strong> (en Cubicaciones) se muestran como <em>excluidas</em> y no se cuentan. En Especificaciones Técnicas la validación es heurística (revisa longitud y palabras clave del detalle) — revísala igual manualmente en el documento Word antes de entregar.
+      </div>
+
+      <!-- Nota sugerida -->
+      <div class="nota-box" id="nota-box">
+        <div class="nota-meta">
+          <div class="nota-eyebrow">Nota sugerida</div>
+          <div class="nota-valor" id="nota-sugerida-val" data-tone="">—</div>
+          <div class="nota-detalle" id="nota-sugerida-detalle">Carga el itemizado para calcular</div>
+        </div>
+        <div class="nota-barra-wrap">
+          <div class="nota-barra" id="nota-sugerida-barra"></div>
+        </div>
+      </div>
+
+      <!-- Plantillas para estudiantes -->
+      <div class="plantillas-section">
+        <div class="psec-title">Plantillas para estudiantes</div>
+        <p>Descarga y envía estas plantillas a tus estudiantes. Deben completarlas en Excel y enviártelas por correo.</p>
+        <div class="plantillas-grid">
+          <button class="small" id="btn-ptl-01">01 · Listado de Actividades (.xlsx)</button>
+          <button class="small" id="btn-ptl-02">02 · Cubicaciones (.xlsx)</button>
+          <button class="small" id="btn-ptl-03">03 · Espec. Técnicas (.xlsx)</button>
+          <button class="small" id="btn-ptl-04">04 · Cotizaciones (.xlsx)</button>
+        </div>
       </div>
 
       <!-- Panel de evaluación del docente -->
@@ -651,17 +700,17 @@
   <div class="cmp-modal">
     <button class="cmp-close" id="cmp-cerrar" title="Cerrar">✕</button>
     <h2>Comparar entregas de estudiantes</h2>
-    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px">Carga los archivos <code>.json</code> exportados por cada estudiante. El sistema calcula el avance de cada entregable automáticamente. Puedes asignar nota y observaciones directamente en la tabla y exportar el resultado a Excel.</p>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px">Carga los archivos <strong>.xlsx</strong> de cada estudiante (generados con el botón <em>"Exportar para entregar"</em> de la herramienta, o los archivos <code>.json</code> de respaldo de progreso). El sistema calcula el avance de cada entregable automáticamente y puedes exportar el resultado a Excel.</p>
 
     <div class="cmp-actions">
-      <button class="primary small" id="btn-cmp-agregar">+ Agregar archivos JSON</button>
+      <button class="primary small" id="btn-cmp-agregar">+ Agregar entregas (.xlsx / .json)</button>
       <button class="small" id="btn-cmp-exportar">Exportar tabla (.xlsx)</button>
       <button class="small danger" id="btn-cmp-limpiar">Limpiar todo</button>
       <span class="count-chip" id="cmp-count">0 estudiante(s)</span>
     </div>
 
     <div class="cmp-drop" id="cmp-drop">
-      Arrastra aquí los archivos <strong>.json</strong> de los estudiantes — o haz clic para seleccionarlos desde tu OneDrive sincronizado.
+      Arrastra aquí los archivos <strong>.xlsx</strong> o <strong>.json</strong> de los estudiantes — o haz clic para seleccionarlos.
     </div>
 
     <div class="grid-wrap" style="max-height:55vh;overflow-y:auto">
@@ -1209,6 +1258,42 @@ function renderResumen() {
     setBadge("badge-" + d.key, r.mal + r.faltantes, false);
   });
   setBadge("badge-cotizaciones", rCot.mal + rCot.faltantes, false);
+
+  /* ---- Nota sugerida 1–7 ---- */
+  const notaEl = document.getElementById("nota-sugerida-val");
+  const notaDetEl = document.getElementById("nota-sugerida-detalle");
+  const notaBarEl = document.getElementById("nota-sugerida-barra");
+  if (notaEl && totalPartidas === 0) {
+    notaEl.textContent = "—";
+    notaEl.dataset.tone = "";
+    if (notaDetEl) notaDetEl.textContent = "Carga el itemizado para calcular";
+    if (notaBarEl) notaBarEl.innerHTML = "";
+  } else if (notaEl) {
+    const rCub  = resumenes.find((r) => r.key === "cubicaciones") || { total: 0, correctas: 0 };
+    const rEett = resumenes.find((r) => r.key === "eett")         || { total: 0, correctas: 0 };
+    const pctCub  = rCub.total  ? rCub.correctas  / rCub.total  : 0;
+    const pctEett = rEett.total ? rEett.correctas / rEett.total : 0;
+    const pctCot  = rCot.total  ? rCot.correctas  / rCot.total  : 0;
+    const pctItem = totalPartidas > 0 ? 1.0 : 0;
+    const score = pctItem * 0.10 + pctCub * 0.40 + pctEett * 0.30 + pctCot * 0.20;
+    const nota = Math.max(1.0, Math.min(7.0, 1.0 + 6.0 * score));
+    const notaStr = nota.toFixed(1).replace(".", ",");
+    notaEl.textContent = notaStr;
+    notaEl.dataset.tone = nota >= 5.5 ? "ok" : nota >= 4.0 ? "warn" : "bad";
+    if (notaDetEl) {
+      const detalles = [
+        "Itemizado " + (pctItem * 100).toFixed(0) + "%",
+        "Cub. " + (pctCub * 100).toFixed(0) + "%",
+        "EETT " + (pctEett * 100).toFixed(0) + "%",
+        "Cot. " + (pctCot * 100).toFixed(0) + "%",
+      ];
+      notaDetEl.textContent = "Pesos: 10% Itemizado · 40% Cub. · 30% EETT · 20% Cot. — " + detalles.join(" · ");
+    }
+    if (notaBarEl) {
+      const barColor = nota >= 5.5 ? "var(--ok)" : nota >= 4.0 ? "var(--warn)" : "var(--bad)";
+      notaBarEl.innerHTML = '<span style="width:' + ((nota - 1) / 6 * 100).toFixed(1) + '%;background:' + barColor + '"></span>';
+    }
+  }
 }
 
 /* ======================= Paste genérico (pegar desde Excel) ======================= */
@@ -1691,6 +1776,28 @@ function mostrarAviso(mensaje, tono) {
   el.classList.add("visible");
   clearTimeout(mostrarAviso._t);
   mostrarAviso._t = setTimeout(() => el.classList.remove("visible"), 7000);
+}
+
+/* Confirmación de dos clics: evita window.confirm() que está bloqueado en iframes */
+function confirmarDosClic(btn, textoConfirm, accion) {
+  if (btn.dataset.confirmStep === "1") {
+    btn.dataset.confirmStep = "";
+    btn.textContent = btn.dataset.confirmOrig || btn.textContent;
+    btn.classList.remove("danger-pending");
+    accion();
+  } else {
+    btn.dataset.confirmStep = "1";
+    btn.dataset.confirmOrig = btn.textContent;
+    btn.textContent = textoConfirm + " — Clic para confirmar";
+    btn.classList.add("danger-pending");
+    setTimeout(function() {
+      if (btn.dataset.confirmStep === "1") {
+        btn.dataset.confirmStep = "";
+        btn.textContent = btn.dataset.confirmOrig || btn.textContent;
+        btn.classList.remove("danger-pending");
+      }
+    }, 4000);
+  }
 }
 
 function reportarImportacion(nombreHoja, resultado) {
@@ -2197,24 +2304,28 @@ document.getElementById("file-import-json").addEventListener("change", (e) => {
   reader.onload = () => {
     try {
       const datos = JSON.parse(String(reader.result));
-      if (!confirm("Esto reemplazará los datos actuales cargados en el navegador por los del archivo. ¿Continuar?")) return;
       state = Object.assign(estadoInicial(), datos);
+      if (!state.cotizaciones || !Array.isArray(state.cotizaciones.materiales)) state.cotizaciones = estadoInicial().cotizaciones;
+      if (!state.evaluacion || typeof state.evaluacion !== "object") state.evaluacion = estadoInicial().evaluacion;
       inputProyecto.value = state.proyecto || "";
       programarGuardado();
       renderTodo();
+      mostrarAviso("Progreso cargado correctamente desde el archivo JSON.", "ok");
     } catch (err) {
-      alert("El archivo no tiene un formato JSON válido de esta planilla.");
+      mostrarAviso("El archivo no tiene un formato JSON válido de esta planilla.", "warn");
     }
   };
   reader.readAsText(file, "utf-8");
   e.target.value = "";
 });
-document.getElementById("btn-reset").addEventListener("click", () => {
-  if (!confirm("Se borrarán todos los datos cargados en este navegador. ¿Continuar?")) return;
-  state = estadoInicial();
-  inputProyecto.value = "";
-  localStorage.removeItem(STORAGE_KEY);
-  renderTodo();
+document.getElementById("btn-reset").addEventListener("click", function() {
+  confirmarDosClic(this, "¿Borrar todo?", function() {
+    state = estadoInicial();
+    inputProyecto.value = "";
+    localStorage.removeItem(STORAGE_KEY);
+    renderTodo();
+    mostrarAviso("Todos los datos han sido borrados.", "ok");
+  });
 });
 
 /* ======================= Planilla Excel completa (descarga + revisión) ======================= */
@@ -2627,32 +2738,12 @@ function calcularResumenDesdeEstado(raw) {
   }
 }
 
-async function procesarArchivosComparacion(files) {
-  for (var i = 0; i < files.length; i++) {
-    var file = files[i];
-    try {
-      var texto = await file.text();
-      var raw = JSON.parse(texto);
-      var resumen = calcularResumenDesdeEstado(raw);
-      var existing = comparacionDatos.find(function(d) { return d.archivo === file.name; });
-      if (existing) {
-        existing.resumen = resumen;
-      } else {
-        comparacionDatos.push({ archivo: file.name, resumen: resumen, notaLocal: resumen.evaluacion.nota || "", obsLocal: resumen.evaluacion.observaciones || "" });
-      }
-    } catch (e) {
-      mostrarAviso("No se pudo leer " + file.name + ": " + e.message, "warn");
-    }
-  }
-  renderTablaComparacion();
-}
-
 function renderTablaComparacion() {
   var tbody = document.getElementById("cmp-tabla-body");
   var countEl = document.getElementById("cmp-count");
   if (!tbody) return;
   if (comparacionDatos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--ink-faint)">Arrastra archivos JSON aquí o usa el botón de arriba.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--ink-faint)">Arrastra archivos <strong>.xlsx</strong> o <strong>.json</strong> aquí o usa el botón de arriba.</td></tr>';
     if (countEl) countEl.textContent = "0 estudiante(s)";
     return;
   }
@@ -2679,28 +2770,6 @@ function renderTablaComparacion() {
   if (countEl) countEl.textContent = comparacionDatos.length + " estudiante(s)";
 }
 
-async function abrirArchivosMultiples() {
-  if (typeof window.showOpenFilePicker === "function") {
-    try {
-      var handles = await window.showOpenFilePicker({
-        multiple: true,
-        types: [{ description: "Progreso JSON", accept: { "application/json": [".json"] } }],
-        startIn: "documents",
-      });
-      return await Promise.all(handles.map(function(h) { return h.getFile(); }));
-    } catch (e) {
-      if (e.name === "AbortError") return [];
-      throw e;
-    }
-  }
-  return new Promise(function(resolve) {
-    var inp = document.createElement("input");
-    inp.type = "file"; inp.accept = "application/json,.json"; inp.multiple = true;
-    inp.onchange = function() { resolve(Array.from(inp.files || [])); };
-    inp.click();
-  });
-}
-
 // Comparison modal wiring
 document.getElementById("btn-comparar-entregas").addEventListener("click", function() {
   document.getElementById("cmp-backdrop").classList.remove("hidden");
@@ -2725,7 +2794,7 @@ cmpDrop.addEventListener("dragover", function(e) { e.preventDefault(); cmpDrop.c
 cmpDrop.addEventListener("dragleave", function() { cmpDrop.classList.remove("dragover"); });
 cmpDrop.addEventListener("drop", async function(e) {
   e.preventDefault(); cmpDrop.classList.remove("dragover");
-  var files = Array.from(e.dataTransfer.files).filter(function(f) { return f.name.endsWith(".json"); });
+  var files = Array.from(e.dataTransfer.files).filter(function(f) { return f.name.endsWith(".json") || f.name.endsWith(".xlsx"); });
   if (files.length) await procesarArchivosComparacion(files);
 });
 document.getElementById("cmp-tabla-body").addEventListener("input", function(e) {
@@ -2757,9 +2826,189 @@ document.getElementById("btn-cmp-exportar").addEventListener("click", async func
   } catch (err) { mostrarAviso("Error al exportar: " + err.message, "warn"); }
 });
 document.getElementById("btn-cmp-limpiar").addEventListener("click", function() {
-  if (comparacionDatos.length && !confirm("Se eliminarán todos los datos de la tabla comparativa. ¿Continuar?")) return;
-  comparacionDatos = []; renderTablaComparacion();
+  if (!comparacionDatos.length) { comparacionDatos = []; renderTablaComparacion(); return; }
+  confirmarDosClic(this, "¿Limpiar todo?", function() {
+    comparacionDatos = []; renderTablaComparacion();
+  });
 });
+
+/* ======================= Importar bundle xlsx de estudiante ======================= */
+async function parsearBundleXlsx(hojas) {
+  const est = estadoInicial();
+  const vacia = (row) => !row || row.every((c) => !c && c !== 0);
+
+  // Itemizado
+  const hojaItem = hojas["Itemizado"] || hojas["ITEMIZADO"] || null;
+  if (hojaItem) {
+    hojaItem.slice(1).forEach((row) => {
+      if (vacia(row)) return;
+      const tipo = String(row[0] || "").trim().toUpperCase();
+      const item = String(row[1] || "").trim();
+      const desc = String(row[2] || "").trim();
+      const unid = String(row[3] || "").trim();
+      const espec = /^(si|sí|1|true|x)$/i.test(String(row[4] || "").trim());
+      est.nextId = (est.nextId || 1);
+      if (tipo === "TITULO") {
+        est.itemizado.push({ id: "id" + est.nextId++, tipo: "titulo", item, descripcion: desc, unidad: "", especialidad: false });
+      } else if (tipo === "PARTIDA" || item) {
+        est.itemizado.push({ id: "id" + est.nextId++, tipo: "partida", item, descripcion: desc, unidad: unid, especialidad: espec });
+      }
+    });
+  }
+
+  const buscarItem = (codigo) => {
+    const norm = String(codigo || "").trim().toLowerCase().replace(/\s+/g, "");
+    return est.itemizado.find((it) => it.tipo === "partida" && String(it.item).trim().toLowerCase().replace(/\s+/g, "") === norm) || null;
+  };
+
+  // Cubicaciones
+  const hojaCub = hojas["Cubicaciones"] || hojas["CUBICACIONES"] || null;
+  if (hojaCub) {
+    const vistos = new Set();
+    hojaCub.slice(1).forEach((row) => {
+      if (vacia(row)) return;
+      const it = buscarItem(row[0]);
+      if (!it) return;
+      const respaldo = String(row[1] || "");
+      const irr = /^(si|sí|1|true|x)$/i.test(String(row[2] || "").trim());
+      const d1 = String(row[3] || ""); const d2 = String(row[4] || ""); const d3 = String(row[5] || "");
+      const signo = String(row[6] || "+") === "-" ? "-" : "+";
+      const memMan = String(row[7] || ""); const canMan = String(row[8] || "");
+      if (!est.cubicaciones[it.id]) {
+        est.cubicaciones[it.id] = { respaldo, irregular: irr, memoriaManual: "", cantidadManual: "", tramos: [] };
+        vistos.add(it.id);
+      }
+      if (!vistos.has(it.id)) { est.cubicaciones[it.id].respaldo = respaldo; est.cubicaciones[it.id].irregular = irr; vistos.add(it.id); }
+      if (memMan || canMan) { est.cubicaciones[it.id].memoriaManual = memMan; est.cubicaciones[it.id].cantidadManual = canMan; }
+      if (d1 || d2 || d3) est.cubicaciones[it.id].tramos.push({ id: "id" + est.nextId++, d1, d2, d3, signo });
+    });
+  }
+
+  // EETT
+  const hojaEett = hojas["EETT"] || hojas["Eett"] || null;
+  if (hojaEett) {
+    hojaEett.slice(1).forEach((row) => {
+      if (vacia(row)) return;
+      const it = buscarItem(row[0]);
+      if (!it) return;
+      est.eett[it.id] = { detalle: String(row[1] || ""), marcado: /^(si|sí|1|true|x)$/i.test(String(row[2] || "").trim()) };
+    });
+  }
+
+  // Cotizaciones
+  (hojas["CotMateriales"] || []).slice(1).forEach((row) => {
+    if (vacia(row)) return;
+    est.cotizaciones.materiales.push({ id: "id" + est.nextId++, nombre: String(row[1] || ""), p1: String(row[2] || ""), p2: String(row[3] || ""), p3: String(row[4] || ""), unico: /^(si|sí|1|true|x)$/i.test(String(row[5] || "").trim()), archivo: String(row[6] || "") });
+  });
+  (hojas["CotHerramientas"] || []).slice(1).forEach((row) => {
+    if (vacia(row)) return;
+    est.cotizaciones.herramientas.push({ id: "id" + est.nextId++, nombre: String(row[1] || ""), p1: String(row[2] || ""), archivo: String(row[3] || "") });
+  });
+  (hojas["CotMaquinas"] || []).slice(1).forEach((row) => {
+    if (vacia(row)) return;
+    est.cotizaciones.maquinas.push({ id: "id" + est.nextId++, nombre: String(row[1] || ""), p1: String(row[2] || ""), archivo: String(row[3] || "") });
+  });
+  (hojas["CotEquipos"] || []).slice(1).forEach((row) => {
+    if (vacia(row)) return;
+    est.cotizaciones.equipos.push({ id: "id" + est.nextId++, nombre: String(row[1] || ""), p1: String(row[2] || ""), archivo: String(row[3] || "") });
+  });
+
+  return est;
+}
+
+document.getElementById("btn-cargar-entrega").addEventListener("click", function() { document.getElementById("file-cargar-entrega").click(); });
+document.getElementById("file-cargar-entrega").addEventListener("change", async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = "";
+  try {
+    const { hojas, orden } = await leerXlsx(await file.arrayBuffer());
+    const parsed = await parsearBundleXlsx(hojas);
+    const evPrev = Object.assign({}, state.evaluacion);
+    state = parsed;
+    state.evaluacion = evPrev;
+    state.proyecto = file.name.replace(/\.xlsx$/i, "").replace(/[_-]+/g, " ");
+    if (document.getElementById("proyecto-nombre")) document.getElementById("proyecto-nombre").value = state.proyecto;
+    programarGuardado();
+    renderTodo();
+    const partCount = state.itemizado.filter((it) => it.tipo === "partida").length;
+    mostrarAviso(
+      "Entrega cargada: " + partCount + " partida(s), " +
+      (Object.keys(state.cubicaciones).length) + " cubicación(es), " +
+      (Object.keys(state.eett).length) + " EETT, " +
+      (state.cotizaciones.materiales.length + state.cotizaciones.herramientas.length + state.cotizaciones.maquinas.length + state.cotizaciones.equipos.length) + " cotización(es).",
+      "ok"
+    );
+  } catch (err) {
+    mostrarAviso("No se pudo leer el archivo: " + err.message, "warn");
+  }
+});
+
+/* ======================= Accesos rápidos a plantillas (Resumen tab) ======================= */
+document.getElementById("btn-ptl-01").addEventListener("click", function() { document.getElementById("btn-plantilla-xlsx-itemizado").click(); });
+document.getElementById("btn-ptl-02").addEventListener("click", function() { document.getElementById("btn-ejemplo-xlsx-cubicaciones").click(); });
+document.getElementById("btn-ptl-03").addEventListener("click", function() {
+  if (partidas().length === 0) { mostrarAviso("Primero carga o crea el Itemizado (tab 01) — la plantilla EETT se genera desde los ITEM existentes.", "warn"); return; }
+  document.getElementById("btn-plantilla-xlsx-eett").click();
+});
+document.getElementById("btn-ptl-04").addEventListener("click", function() { document.getElementById("btn-plantilla-xlsx-cotizaciones").click(); });
+
+/* ======================= Comparación: soporte xlsx además de json ======================= */
+async function procesarArchivoComparacionXlsx(file) {
+  const { hojas } = await leerXlsx(await file.arrayBuffer());
+  const parsed = await parsearBundleXlsx(hojas);
+  parsed.proyecto = file.name.replace(/\.xlsx$/i, "").replace(/[_-]+/g, " ");
+  return calcularResumenDesdeEstado(parsed);
+}
+
+async function procesarArchivosComparacion(files) {
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    try {
+      var resumen;
+      if (file.name.endsWith(".xlsx")) {
+        resumen = await procesarArchivoComparacionXlsx(file);
+      } else {
+        var texto = await file.text();
+        var raw = JSON.parse(texto);
+        resumen = calcularResumenDesdeEstado(raw);
+      }
+      var existing = comparacionDatos.find(function(d) { return d.archivo === file.name; });
+      if (existing) {
+        existing.resumen = resumen;
+      } else {
+        comparacionDatos.push({ archivo: file.name, resumen: resumen, notaLocal: resumen.evaluacion.nota || "", obsLocal: resumen.evaluacion.observaciones || "" });
+      }
+    } catch (e) {
+      mostrarAviso("No se pudo leer " + file.name + ": " + e.message, "warn");
+    }
+  }
+  renderTablaComparacion();
+}
+
+async function abrirArchivosMultiples() {
+  if (typeof window.showOpenFilePicker === "function") {
+    try {
+      var handles = await window.showOpenFilePicker({
+        multiple: true,
+        types: [
+          { description: "Entrega Excel o JSON", accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"], "application/json": [".json"] } },
+        ],
+        startIn: "documents",
+      });
+      return await Promise.all(handles.map(function(h) { return h.getFile(); }));
+    } catch (e) {
+      if (e.name === "AbortError") return [];
+      throw e;
+    }
+  }
+  return new Promise(function(resolve) {
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = ".xlsx,.json,application/json"; inp.multiple = true;
+    inp.onchange = function() { resolve(Array.from(inp.files || [])); };
+    inp.click();
+  });
+}
 
 /* ======================= Orquestación ======================= */
 function renderDependientes() {
