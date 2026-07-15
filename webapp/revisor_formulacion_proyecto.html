@@ -2986,25 +2986,99 @@ document.getElementById("file-cargar-entrega").addEventListener("change", async 
   if (!file) return;
   e.target.value = "";
   try {
-    const { hojas, orden } = await leerXlsx(await file.arrayBuffer());
-    const parsed = await parsearBundleXlsx(hojas);
+    const { hojas } = await leerXlsx(await file.arrayBuffer());
     const evPrev = Object.assign({}, state.evaluacion);
-    state = parsed;
+
+    const tieneItem = !!(hojas["Itemizado"] || hojas["ITEMIZADO"]);
+    const tieneCub  = !!(hojas["Cubicaciones"] || hojas["CUBICACIONES"]);
+    const tieneEett = !!(hojas["EETT"] || hojas["Eett"]);
+    const tieneCot  = !!(hojas["CotMateriales"] || hojas["CotHerramientas"] || hojas["CotMaquinas"] || hojas["CotEquipos"]);
+    const seccionesN = [tieneItem, tieneCub, tieneEett, tieneCot].filter(Boolean).length;
+    const vac = function(row) { return !row || row.every(function(c) { return !c && c !== 0; }); };
+
+    if (seccionesN > 1 || !state.itemizado.length) {
+      // Bundle completo o estado vacío: reemplazar todo
+      const parsed = await parsearBundleXlsx(hojas);
+      state = parsed;
+      state.evaluacion = evPrev;
+      state.proyecto = file.name.replace(/\.xlsx$/i, "").replace(/[_\-]+/g, " ");
+      if (document.getElementById("proyecto-nombre")) document.getElementById("proyecto-nombre").value = state.proyecto;
+      programarGuardado(); renderTodo();
+      const p = state.itemizado.filter(function(x) { return x.tipo === "partida"; }).length;
+      mostrarAviso("Entrega cargada: " + p + " partida(s), " + Object.keys(state.cubicaciones).length + " cubicación(es), " + Object.keys(state.eett).length + " EETT, " + (state.cotizaciones.materiales.length + state.cotizaciones.herramientas.length + state.cotizaciones.maquinas.length + state.cotizaciones.equipos.length) + " cotización(es).", "ok");
+      return;
+    }
+
+    // Archivo individual: fusionar solo la sección detectada, preservar el resto
+    if (tieneItem) {
+      // Reemplazar itemizado y limpiar cubicaciones/EETT (los IDs cambian)
+      state.itemizado = []; state.cubicaciones = {}; state.eett = {};
+      let nId = state.nextId || 1;
+      (hojas["Itemizado"] || hojas["ITEMIZADO"] || []).slice(1).forEach(function(row) {
+        if (vac(row)) return;
+        const tipo = String(row[0] || "").trim().toUpperCase();
+        const item = String(row[1] || "").trim();
+        if (tipo === "TITULO") {
+          state.itemizado.push({ id: "id" + nId++, tipo: "titulo", item, descripcion: String(row[2] || ""), unidad: "", especialidad: false });
+        } else if (tipo === "PARTIDA" || item) {
+          state.itemizado.push({ id: "id" + nId++, tipo: "partida", item, descripcion: String(row[2] || ""), unidad: String(row[3] || ""), especialidad: /^(si|sí|1|true|x)$/i.test(String(row[4] || "").trim()) });
+        }
+      });
+      state.nextId = nId;
+      const p = state.itemizado.filter(function(x) { return x.tipo === "partida"; }).length;
+      const t = state.itemizado.filter(function(x) { return x.tipo === "titulo"; }).length;
+      mostrarAviso("Itemizado cargado: " + t + " sección(es), " + p + " partida(s). Ahora carga Cubicaciones, EETT y Cotizaciones.", "ok");
+
+    } else if (tieneCub) {
+      if (!state.itemizado.length) { mostrarAviso("Primero carga el Listado de Actividades (Plantilla 01).", "warn"); return; }
+      const vistos = new Set();
+      const res = importarFilasPorItem(hojas["Cubicaciones"] || hojas["CUBICACIONES"] || [], function(it, resto) {
+        const c = getCub(it.id);
+        if (!vistos.has(it.id)) { c.respaldo = String(resto[0] || ""); c.irregular = /^(si|sí|1|true|x)$/i.test(String(resto[1] || "").trim()); c.tramos = []; vistos.add(it.id); }
+        const d1 = String(resto[2] || ""), d2 = String(resto[3] || ""), d3 = String(resto[4] || "");
+        const signo = String(resto[5] || "+") === "-" ? "-" : "+";
+        const memMan = String(resto[6] || ""), canMan = String(resto[7] || "");
+        if (memMan || canMan) { c.memoriaManual = memMan; c.cantidadManual = canMan; }
+        if (d1 || d2 || d3) c.tramos.push({ id: "id" + state.nextId++, d1, d2, d3, signo });
+      });
+      reportarImportacion("Cubicaciones", res);
+
+    } else if (tieneEett) {
+      if (!state.itemizado.length) { mostrarAviso("Primero carga el Listado de Actividades (Plantilla 01).", "warn"); return; }
+      const res = importarFilasPorItem(hojas["EETT"] || hojas["Eett"] || [], function(it, resto) {
+        const rec = getEett(it.id);
+        rec.detalle = String(resto[0] || "");
+        rec.marcado = /^(si|sí|1|true|x)$/i.test(String(resto[1] || "").trim());
+      });
+      reportarImportacion("Especificaciones Técnicas", res);
+
+    } else if (tieneCot) {
+      let imp = 0;
+      (hojas["CotMateriales"] || []).slice(1).forEach(function(row) {
+        if (vac(row)) return;
+        state.cotizaciones.materiales.push({ id: "id" + state.nextId++, nombre: String(row[1]||""), p1: String(row[2]||""), p2: String(row[3]||""), p3: String(row[4]||""), unico: /^(si|sí|1|true|x)$/i.test(String(row[5]||"").trim()), archivo: String(row[6]||"") }); imp++;
+      });
+      (hojas["CotHerramientas"] || []).slice(1).forEach(function(row) {
+        if (vac(row)) return;
+        state.cotizaciones.herramientas.push({ id: "id" + state.nextId++, nombre: String(row[1]||""), p1: String(row[2]||""), archivo: String(row[3]||"") }); imp++;
+      });
+      (hojas["CotMaquinas"] || []).slice(1).forEach(function(row) {
+        if (vac(row)) return;
+        state.cotizaciones.maquinas.push({ id: "id" + state.nextId++, nombre: String(row[1]||""), p1: String(row[2]||""), archivo: String(row[3]||"") }); imp++;
+      });
+      (hojas["CotEquipos"] || []).slice(1).forEach(function(row) {
+        if (vac(row)) return;
+        state.cotizaciones.equipos.push({ id: "id" + state.nextId++, nombre: String(row[1]||""), p1: String(row[2]||""), archivo: String(row[3]||"") }); imp++;
+      });
+      mostrarAviso("Cotizaciones fusionadas: " + imp + " fila(s).", "ok");
+    }
+
     state.evaluacion = evPrev;
-    state.proyecto = file.name.replace(/\.xlsx$/i, "").replace(/[_-]+/g, " ");
-    if (document.getElementById("proyecto-nombre")) document.getElementById("proyecto-nombre").value = state.proyecto;
     programarGuardado();
     renderTodo();
-    const partCount = state.itemizado.filter((it) => it.tipo === "partida").length;
-    mostrarAviso(
-      "Entrega cargada: " + partCount + " partida(s), " +
-      (Object.keys(state.cubicaciones).length) + " cubicación(es), " +
-      (Object.keys(state.eett).length) + " EETT, " +
-      (state.cotizaciones.materiales.length + state.cotizaciones.herramientas.length + state.cotizaciones.maquinas.length + state.cotizaciones.equipos.length) + " cotización(es).",
-      "ok"
-    );
   } catch (err) {
     mostrarAviso("No se pudo leer el archivo: " + err.message, "warn");
+    console.error("Error al cargar entrega:", err);
   }
 });
 
