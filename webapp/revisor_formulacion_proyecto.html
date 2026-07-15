@@ -430,6 +430,24 @@
   table.grid > tbody.item-group { border: none; border-radius: 0; background: transparent; margin: 0; }
   #itemizado-list table.grid tr.titulo-row td { background: var(--accent-soft); border-bottom: 1px solid var(--line); }
   #itemizado-list table.grid tr.titulo-row:hover td { background: var(--accent-soft); }
+
+  /* ---- Panel evaluación del docente ---- */
+  .eval-section { margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--line); }
+  .eval-section h3 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 16px; font-weight: 700; }
+  .eval-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+
+  /* ---- Modal comparación de entregas ---- */
+  .cmp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px; overflow-y: auto; }
+  .cmp-backdrop.hidden { display: none; }
+  .cmp-modal { background: var(--paper-raised); border: 1px solid var(--line-strong); border-radius: 6px; width: 100%; max-width: 1140px; padding: 26px; position: relative; box-shadow: 0 16px 48px rgba(0,0,0,.28); }
+  .cmp-modal h2 { font-size: 16px; margin: 0 0 16px; }
+  .cmp-drop { border: 2px dashed var(--line-strong); border-radius: 4px; padding: 28px 20px; text-align: center; color: var(--ink-soft); font-size: 13px; margin-bottom: 14px; cursor: pointer; transition: background .12s, border-color .12s; }
+  .cmp-drop:hover, .cmp-drop.dragover { background: var(--accent-soft); border-color: var(--accent); }
+  .cmp-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--ink-soft); line-height: 1; padding: 2px 8px; border-radius: 3px; }
+  .cmp-close:hover { background: var(--bad-soft); color: var(--bad); }
+  .cmp-nota-input { width: 68px; font-family: var(--mono); text-align: center; font-weight: 700; }
+  .cmp-obs-input { width: 100%; min-width: 100px; }
+  .cmp-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
 </style>
 
 <div class="app">
@@ -458,6 +476,7 @@
         <input id="proyecto-nombre" type="text" placeholder="Nombre del proyecto (licitación Mercado Público)" />
       </div>
       <div class="topbar-actions">
+        <button class="ghost small" id="btn-comparar-entregas" title="Cargar múltiples JSON de estudiantes y ver tabla comparativa">Comparar entregas</button>
         <button class="ghost small" id="btn-export-json">Guardar progreso (.json)</button>
         <button class="ghost small" id="btn-import-json">Cargar progreso (.json)</button>
         <input type="file" id="file-import-json" accept="application/json,.json" />
@@ -501,6 +520,31 @@
 
       <div class="note">
         <strong>Cómo se calcula:</strong> cada entregable se evalúa partida por partida usando como referencia el Itemizado. Una partida es <em>correcta</em> cuando pasa todas las validaciones automáticas de esa hoja, <em>mal ejecutada</em> cuando tiene datos pero con errores, y <em>faltante</em> cuando no se ha cargado información para ella. Las filas de <strong>título de sección</strong> y las partidas de <strong>especialidad</strong> (en Cubicaciones) se muestran como <em>excluidas</em> y no se cuentan. En Especificaciones Técnicas la validación es heurística (revisa longitud y palabras clave del detalle) — revísala igual manualmente en el documento Word antes de entregar.
+      </div>
+
+      <!-- Panel de evaluación del docente -->
+      <div class="eval-section" id="panel-evaluacion">
+        <h3>Evaluación del docente</h3>
+        <div class="eval-grid">
+          <div class="field">
+            <label class="eyebrow" for="eval-nombre">Nombre / Grupo del estudiante</label>
+            <input id="eval-nombre" type="text" placeholder="Juan Pérez · Grupo 03" />
+          </div>
+          <div class="field">
+            <label class="eyebrow" for="eval-nota">Nota final (1,0 – 7,0)</label>
+            <input id="eval-nota" type="text" placeholder="5,5" style="width:110px;font-family:var(--mono);font-weight:700" />
+          </div>
+        </div>
+        <div class="eval-grid">
+          <div class="field"><label class="eyebrow" for="eval-pts-item">Puntaje Itemizado</label><input id="eval-pts-item" type="text" placeholder="0 pts" /></div>
+          <div class="field"><label class="eyebrow" for="eval-pts-cub">Puntaje Cubicaciones</label><input id="eval-pts-cub" type="text" placeholder="0 pts" /></div>
+          <div class="field"><label class="eyebrow" for="eval-pts-eett">Puntaje EETT</label><input id="eval-pts-eett" type="text" placeholder="0 pts" /></div>
+          <div class="field"><label class="eyebrow" for="eval-pts-cot">Puntaje Cotizaciones</label><input id="eval-pts-cot" type="text" placeholder="0 pts" /></div>
+        </div>
+        <div class="field">
+          <label class="eyebrow" for="eval-obs">Observaciones del docente</label>
+          <textarea id="eval-obs" rows="3" placeholder="Observaciones generales de la revisión…" style="width:100%;resize:vertical"></textarea>
+        </div>
       </div>
     </section>
 
@@ -602,6 +646,46 @@
   </main>
 </div>
 
+<!-- ============ MODAL COMPARACIÓN DE ENTREGAS ============ -->
+<div class="cmp-backdrop hidden" id="cmp-backdrop">
+  <div class="cmp-modal">
+    <button class="cmp-close" id="cmp-cerrar" title="Cerrar">✕</button>
+    <h2>Comparar entregas de estudiantes</h2>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px">Carga los archivos <code>.json</code> exportados por cada estudiante. El sistema calcula el avance de cada entregable automáticamente. Puedes asignar nota y observaciones directamente en la tabla y exportar el resultado a Excel.</p>
+
+    <div class="cmp-actions">
+      <button class="primary small" id="btn-cmp-agregar">+ Agregar archivos JSON</button>
+      <button class="small" id="btn-cmp-exportar">Exportar tabla (.xlsx)</button>
+      <button class="small danger" id="btn-cmp-limpiar">Limpiar todo</button>
+      <span class="count-chip" id="cmp-count">0 estudiante(s)</span>
+    </div>
+
+    <div class="cmp-drop" id="cmp-drop">
+      Arrastra aquí los archivos <strong>.json</strong> de los estudiantes — o haz clic para seleccionarlos desde tu OneDrive sincronizado.
+    </div>
+
+    <div class="grid-wrap" style="max-height:55vh;overflow-y:auto">
+      <table class="grid" style="min-width:900px">
+        <thead>
+          <tr>
+            <th style="min-width:180px">Proyecto / Estudiante</th>
+            <th style="width:70px;text-align:center">Partidas</th>
+            <th style="width:90px;text-align:center">Cubicaciones</th>
+            <th style="width:90px;text-align:center">EETT</th>
+            <th style="width:90px;text-align:center">Cotizaciones</th>
+            <th style="width:80px">Nota</th>
+            <th>Observaciones</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="cmp-tabla-body">
+          <tr><td colspan="8" style="padding:16px;text-align:center;color:var(--ink-faint)">Arrastra archivos JSON aquí o usa el botón de arriba.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <datalist id="dl-unidades">
   <option value="ml">Metros lineales</option>
   <option value="m2">Metros cuadrados</option>
@@ -646,6 +730,15 @@ function estadoInicial() {
       maquinas:     [],
       equipos:      [],
     },
+    evaluacion: {
+      nombre: "",
+      nota: "",
+      puntajeItemizado: "",
+      puntajeCubicaciones: "",
+      puntajeEett: "",
+      puntajeCotizaciones: "",
+      observaciones: "",
+    },
   };
 }
 
@@ -662,6 +755,9 @@ function cargarEstado() {
     // Migrar formato anterior de cotizaciones (objeto plano de IDs) al nuevo (4 arrays)
     if (!estado.cotizaciones || !Array.isArray(estado.cotizaciones.materiales)) {
       estado.cotizaciones = estadoInicial().cotizaciones;
+    }
+    if (!estado.evaluacion || typeof estado.evaluacion !== "object") {
+      estado.evaluacion = estadoInicial().evaluacion;
     }
     return estado;
   } catch (e) {
@@ -2134,6 +2230,16 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
     const r = resumenEntregable(d.fn);
     hojaResumen.push([d.nombre, r.total, r.realizadas, r.correctas, r.mal, r.faltantes]);
   });
+  const ev = state.evaluacion;
+  if (ev.nombre || ev.nota || ev.observaciones) {
+    hojaResumen.push([]);
+    hojaResumen.push(["EVALUACION_DOCENTE", "", "", "", "", ""]);
+    hojaResumen.push(["Estudiante / Grupo", ev.nombre, "", "", "", ""]);
+    hojaResumen.push(["Nota final", ev.nota, "", "", "", ""]);
+    hojaResumen.push(["Pts. Itemizado", ev.puntajeItemizado, "Pts. Cubicaciones", ev.puntajeCubicaciones, "Pts. EETT", ev.puntajeEett]);
+    hojaResumen.push(["Pts. Cotizaciones", ev.puntajeCotizaciones, "", "", "", ""]);
+    hojaResumen.push(["Observaciones", ev.observaciones, "", "", "", ""]);
+  }
 
   const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"]];
   state.itemizado.forEach((it) => {
@@ -2468,6 +2574,193 @@ document.getElementById("btn-export-xlsx-cotizaciones").addEventListener("click"
   }
 });
 
+/* ======================= Evaluación del docente ======================= */
+function renderEvaluacion() {
+  const ev = state.evaluacion;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
+  set("eval-nombre", ev.nombre);
+  set("eval-nota", ev.nota);
+  set("eval-pts-item", ev.puntajeItemizado);
+  set("eval-pts-cub", ev.puntajeCubicaciones);
+  set("eval-pts-eett", ev.puntajeEett);
+  set("eval-pts-cot", ev.puntajeCotizaciones);
+  set("eval-obs", ev.observaciones);
+}
+
+document.getElementById("panel-evaluacion").addEventListener("input", function(e) {
+  const map = {
+    "eval-nombre": "nombre",
+    "eval-nota": "nota",
+    "eval-pts-item": "puntajeItemizado",
+    "eval-pts-cub": "puntajeCubicaciones",
+    "eval-pts-eett": "puntajeEett",
+    "eval-pts-cot": "puntajeCotizaciones",
+    "eval-obs": "observaciones",
+  };
+  const key = map[e.target.id];
+  if (key) { state.evaluacion[key] = e.target.value; programarGuardado(); }
+});
+
+/* ======================= Comparación de entregas ======================= */
+let comparacionDatos = [];
+
+function calcularResumenDesdeEstado(raw) {
+  const prev = state;
+  try {
+    state = Object.assign(estadoInicial(), raw);
+    if (!state.cotizaciones || !Array.isArray(state.cotizaciones.materiales)) {
+      state.cotizaciones = estadoInicial().cotizaciones;
+    }
+    if (!state.evaluacion || typeof state.evaluacion !== "object") {
+      state.evaluacion = estadoInicial().evaluacion;
+    }
+    return {
+      proyecto: state.proyecto || "(sin nombre)",
+      evaluacion: Object.assign({}, estadoInicial().evaluacion, state.evaluacion),
+      totalPartidas: partidas().length,
+      cubicaciones: resumenEntregable(estadoCubicacion),
+      eett: resumenEntregable(estadoEett),
+      cotizaciones: resumenCotizaciones(),
+    };
+  } finally {
+    state = prev;
+  }
+}
+
+async function procesarArchivosComparacion(files) {
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    try {
+      var texto = await file.text();
+      var raw = JSON.parse(texto);
+      var resumen = calcularResumenDesdeEstado(raw);
+      var existing = comparacionDatos.find(function(d) { return d.archivo === file.name; });
+      if (existing) {
+        existing.resumen = resumen;
+      } else {
+        comparacionDatos.push({ archivo: file.name, resumen: resumen, notaLocal: resumen.evaluacion.nota || "", obsLocal: resumen.evaluacion.observaciones || "" });
+      }
+    } catch (e) {
+      mostrarAviso("No se pudo leer " + file.name + ": " + e.message, "warn");
+    }
+  }
+  renderTablaComparacion();
+}
+
+function renderTablaComparacion() {
+  var tbody = document.getElementById("cmp-tabla-body");
+  var countEl = document.getElementById("cmp-count");
+  if (!tbody) return;
+  if (comparacionDatos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--ink-faint)">Arrastra archivos JSON aquí o usa el botón de arriba.</td></tr>';
+    if (countEl) countEl.textContent = "0 estudiante(s)";
+    return;
+  }
+  tbody.innerHTML = comparacionDatos.map(function(d, i) {
+    var r = d.resumen;
+    var cubStr = r.cubicaciones.correctas + "/" + r.cubicaciones.total;
+    var eettStr = r.eett.correctas + "/" + r.eett.total;
+    var cotStr = r.cotizaciones.correctas + "/" + r.cotizaciones.total;
+    var n = parseFloat(String(d.notaLocal).replace(",", "."));
+    var notaColor = n >= 5.5 ? "var(--ok)" : n >= 4.0 ? "var(--warn)" : n > 0 ? "var(--bad)" : "";
+    return (
+      "<tr>" +
+      "<td>" + esc(r.proyecto) + "<br><small style='color:var(--ink-faint)'>" + esc(d.archivo) + "</small></td>" +
+      "<td style='text-align:center;font-family:var(--mono)'>" + r.totalPartidas + "</td>" +
+      "<td style='text-align:center;font-family:var(--mono)'>" + cubStr + "</td>" +
+      "<td style='text-align:center;font-family:var(--mono)'>" + eettStr + "</td>" +
+      "<td style='text-align:center;font-family:var(--mono)'>" + cotStr + "</td>" +
+      "<td><input class='cmp-nota-input' type='text' data-cmp-idx='" + i + "' data-cmp-field='nota' value='" + esc(d.notaLocal) + "' placeholder='5,5' style='color:" + notaColor + "' /></td>" +
+      "<td><input class='cmp-obs-input' type='text' data-cmp-idx='" + i + "' data-cmp-field='obs' value='" + esc(d.obsLocal) + "' placeholder='Observaciones…' /></td>" +
+      "<td style='text-align:right'><button class='rowdel' data-cmp-del='" + i + "' title='Quitar'>✕</button></td>" +
+      "</tr>"
+    );
+  }).join("");
+  if (countEl) countEl.textContent = comparacionDatos.length + " estudiante(s)";
+}
+
+async function abrirArchivosMultiples() {
+  if (typeof window.showOpenFilePicker === "function") {
+    try {
+      var handles = await window.showOpenFilePicker({
+        multiple: true,
+        types: [{ description: "Progreso JSON", accept: { "application/json": [".json"] } }],
+        startIn: "documents",
+      });
+      return await Promise.all(handles.map(function(h) { return h.getFile(); }));
+    } catch (e) {
+      if (e.name === "AbortError") return [];
+      throw e;
+    }
+  }
+  return new Promise(function(resolve) {
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "application/json,.json"; inp.multiple = true;
+    inp.onchange = function() { resolve(Array.from(inp.files || [])); };
+    inp.click();
+  });
+}
+
+// Comparison modal wiring
+document.getElementById("btn-comparar-entregas").addEventListener("click", function() {
+  document.getElementById("cmp-backdrop").classList.remove("hidden");
+  renderTablaComparacion();
+});
+document.getElementById("cmp-cerrar").addEventListener("click", function() {
+  document.getElementById("cmp-backdrop").classList.add("hidden");
+});
+document.getElementById("cmp-backdrop").addEventListener("click", function(e) {
+  if (e.target === document.getElementById("cmp-backdrop")) document.getElementById("cmp-backdrop").classList.add("hidden");
+});
+document.getElementById("btn-cmp-agregar").addEventListener("click", async function() {
+  var files = await abrirArchivosMultiples();
+  if (files.length) await procesarArchivosComparacion(files);
+});
+var cmpDrop = document.getElementById("cmp-drop");
+cmpDrop.addEventListener("click", async function() {
+  var files = await abrirArchivosMultiples();
+  if (files.length) await procesarArchivosComparacion(files);
+});
+cmpDrop.addEventListener("dragover", function(e) { e.preventDefault(); cmpDrop.classList.add("dragover"); });
+cmpDrop.addEventListener("dragleave", function() { cmpDrop.classList.remove("dragover"); });
+cmpDrop.addEventListener("drop", async function(e) {
+  e.preventDefault(); cmpDrop.classList.remove("dragover");
+  var files = Array.from(e.dataTransfer.files).filter(function(f) { return f.name.endsWith(".json"); });
+  if (files.length) await procesarArchivosComparacion(files);
+});
+document.getElementById("cmp-tabla-body").addEventListener("input", function(e) {
+  var idx = parseInt(e.target.dataset.cmpIdx, 10);
+  var field = e.target.dataset.cmpField;
+  if (isNaN(idx) || !field || !comparacionDatos[idx]) return;
+  if (field === "nota") {
+    comparacionDatos[idx].notaLocal = e.target.value;
+    var n = parseFloat(String(e.target.value).replace(",", "."));
+    e.target.style.color = n >= 5.5 ? "var(--ok)" : n >= 4.0 ? "var(--warn)" : n > 0 ? "var(--bad)" : "";
+  }
+  if (field === "obs") comparacionDatos[idx].obsLocal = e.target.value;
+});
+document.getElementById("cmp-tabla-body").addEventListener("click", function(e) {
+  var delBtn = e.target.closest("[data-cmp-del]");
+  if (delBtn) { comparacionDatos.splice(parseInt(delBtn.dataset.cmpDel, 10), 1); renderTablaComparacion(); }
+});
+document.getElementById("btn-cmp-exportar").addEventListener("click", async function() {
+  if (!comparacionDatos.length) { mostrarAviso("No hay datos para exportar.", "warn"); return; }
+  try {
+    var filas = [["PROYECTO", "ARCHIVO", "PARTIDAS", "CUB_CORRECTAS", "CUB_TOTAL", "EETT_CORRECTAS", "EETT_TOTAL", "COT_CORRECTAS", "COT_TOTAL", "NOTA", "OBSERVACIONES"]];
+    comparacionDatos.forEach(function(d) {
+      var r = d.resumen;
+      filas.push([r.proyecto, d.archivo, r.totalPartidas, r.cubicaciones.correctas, r.cubicaciones.total, r.eett.correctas, r.eett.total, r.cotizaciones.correctas, r.cotizaciones.total, d.notaLocal, d.obsLocal]);
+    });
+    var blob = await generarXlsx([{ nombre: "Comparacion", filas: filas }]);
+    descargarBlob("comparacion-entregas.xlsx", blob);
+    mostrarAviso("Tabla comparativa exportada.", "ok");
+  } catch (err) { mostrarAviso("Error al exportar: " + err.message, "warn"); }
+});
+document.getElementById("btn-cmp-limpiar").addEventListener("click", function() {
+  if (comparacionDatos.length && !confirm("Se eliminarán todos los datos de la tabla comparativa. ¿Continuar?")) return;
+  comparacionDatos = []; renderTablaComparacion();
+});
+
 /* ======================= Orquestación ======================= */
 function renderDependientes() {
   renderCubicaciones();
@@ -2478,6 +2771,7 @@ function renderTodo() {
   renderItemizado();
   renderDependientes();
   renderResumen();
+  renderEvaluacion();
 }
 
 renderTodo();
