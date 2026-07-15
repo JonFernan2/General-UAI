@@ -421,6 +421,16 @@
     .app { flex-direction: column; }
     .main { padding: 20px; }
   }
+
+  /* ---- Itemizado: tabla unificada (formato pauta Ejemplo 3) ---- */
+  /* Neutralizar estilos de tarjeta cuando .item-group se usa en <tbody> */
+  table.grid > tbody.item-group { border: none; border-radius: 0; background: transparent; margin: 0; }
+  #itemizado-list table.grid tr.titulo-row td { background: var(--accent-soft); border-bottom: 1px solid var(--line); }
+  #itemizado-list table.grid tr.titulo-row:hover td { background: var(--accent-soft); }
+  #itemizado-list table.grid tr.mat-sub td { background: var(--paper); padding: 8px 14px 12px; border-bottom: 2px solid var(--line-strong); }
+  #itemizado-list table.grid tr.mat-sub:hover td { background: var(--paper); }
+  .mat-sub-inner { border-left: 3px solid var(--line-strong); padding-left: 12px; }
+  .mat-sub-label { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; font-weight: 700; }
 </style>
 
 <div class="app">
@@ -553,7 +563,7 @@
               <th style="width:90px">Item</th>
               <th style="width:220px">Descripción</th>
               <th>Detalle de la modificación (calidad, marca, modelo, formato, color…)</th>
-              <th style="width:80px">Marcado✓</th>
+              <th style="width:110px">Resaltado en Word✓</th>
               <th style="width:180px">Estado</th>
             </tr>
           </thead>
@@ -1142,54 +1152,66 @@ function renderItemizado() {
     document.getElementById("chip-itemizado").textContent = "0 partida(s)";
     return;
   }
-  cont.innerHTML = state.itemizado
-    .map((it, i) => {
-      if (esTitulo(it)) {
-        return (
-          '<div class="item-group es-titulo" data-id="' + it.id + '">' +
-          '<div class="item-group-head">' +
-          '<input type="text" class="row-item-code" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="2.0" />' +
-          '<input type="text" class="row-item-desc" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="TÍTULO DE LA SECCIÓN (ej. OBRA GRUESA)" />' +
-          '<button class="rowdel" data-del="' + it.id + '" title="Eliminar título">✕</button>' +
-          "</div></div>"
-        );
-      }
+
+  // Cada entrada en state.itemizado se convierte en un <tbody class="item-group">
+  // dentro de la tabla. Esto agrupa la fila de partida y su sub-sección de
+  // materiales en un solo elemento seleccionable, preservando los selectores
+  // .item-group usados en los tests y la lógica de eventos.
+  let tbodiesHtml = "";
+  state.itemizado.forEach((it, i) => {
+    if (esTitulo(it)) {
+      tbodiesHtml +=
+        '<tbody class="item-group es-titulo" data-id="' + it.id + '">' +
+        '<tr class="titulo-row">' +
+        '<td><input type="text" style="font-family:var(--mono);font-weight:700;color:var(--accent)" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="2.0" /></td>' +
+        '<td colspan="4"><input type="text" style="font-weight:800;text-transform:uppercase;letter-spacing:.02em;width:100%" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="TÍTULO DE LA SECCIÓN (ej. OBRA GRUESA)" /></td>' +
+        '<td style="padding:0 8px;text-align:right"><button class="rowdel" data-del="' + it.id + '" title="Eliminar título">✕</button></td>' +
+        '</tr>' +
+        '</tbody>';
+    } else {
       const filasMat = materialesDeItem(it.id);
       const estMat = estadoMaterialesItem(it);
-      const filasMatHtml = filasMat
-        .map(
-          (m) =>
-            "<tr>" +
-            '<td><input type="text" data-mid="' + m.id + '" data-field="nombre" value="' + esc(m.nombre) + '" placeholder="Nombre del material/herramienta" /></td>' +
-            '<td><input type="text" list="dl-tipos" data-mid="' + m.id + '" data-field="tipo" value="' + esc(m.tipo) + '" placeholder="Material" /></td>' +
-            '<td><input type="text" data-mid="' + m.id + '" data-field="detalle" value="' + esc(m.detalle) + '" placeholder="Calidad / marca / modelo / formato / color" /></td>' +
-            '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="cantidad" value="' + esc(m.cantidad) + '" placeholder="0" /></td>' +
-            '<td><input type="text" list="dl-unidades" data-mid="' + m.id + '" data-field="unidad" value="' + esc(m.unidad) + '" placeholder="un" /></td>' +
-            '<td><button class="rowdel" data-delmat="' + m.id + '" title="Eliminar línea">✕</button></td>' +
-            "</tr>"
-        )
-        .join("");
-      return (
-        '<div class="item-group" data-id="' + it.id + '">' +
-        '<div class="item-group-head">' +
-        '<input type="text" class="row-item-code" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="2.1" />' +
-        '<input type="text" class="row-item-desc" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="Descripción de la actividad" />' +
-        '<input type="text" list="dl-unidades" class="row-item-unidad" data-row="' + i + '" data-col="2" data-field="unidad" value="' + esc(it.unidad) + '" placeholder="m2" />' +
-        '<label class="chk"><input type="checkbox" data-item="' + it.id + '" data-check="especialidad" ' + (it.especialidad ? "checked" : "") + ' title="Instalaciones eléctricas/CCDD/CCTV, clima, ascensores, gas"/> Especialidad</label>' +
-        '<button class="rowdel" data-del="' + it.id + '" title="Eliminar partida">✕</button>' +
-        "</div>" +
-        '<div class="item-group-foot">' +
-        '<div class="field-row" style="justify-content:space-between;margin-bottom:6px">' +
-        '<span class="count-chip">Materiales / herramientas / máquinas / equipos</span>' + pillHtml(estMat.status, estMat.issues) +
-        "</div>" +
+      const filasMatHtml = filasMat.map((m) =>
+        '<tr>' +
+        '<td><input type="text" data-mid="' + m.id + '" data-field="nombre" value="' + esc(m.nombre) + '" placeholder="Nombre del material/herramienta" /></td>' +
+        '<td><input type="text" list="dl-tipos" data-mid="' + m.id + '" data-field="tipo" value="' + esc(m.tipo) + '" placeholder="Material" /></td>' +
+        '<td><input type="text" data-mid="' + m.id + '" data-field="detalle" value="' + esc(m.detalle) + '" placeholder="Calidad / marca / modelo / formato / color" /></td>' +
+        '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="cantidad" value="' + esc(m.cantidad) + '" placeholder="0" /></td>' +
+        '<td><input type="text" list="dl-unidades" data-mid="' + m.id + '" data-field="unidad" value="' + esc(m.unidad) + '" placeholder="un" /></td>' +
+        '<td><button class="rowdel" data-delmat="' + m.id + '" title="Eliminar línea">✕</button></td>' +
+        '</tr>'
+      ).join("");
+      tbodiesHtml +=
+        '<tbody class="item-group" data-id="' + it.id + '">' +
+        '<tr class="partida-row">' +
+        '<td><input type="text" style="font-family:var(--mono);font-weight:700" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="2.1" /></td>' +
+        '<td><input type="text" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="Descripción de la actividad" /></td>' +
+        '<td><input type="text" list="dl-unidades" data-row="' + i + '" data-col="2" data-field="unidad" value="' + esc(it.unidad) + '" placeholder="m2" /></td>' +
+        '<td style="text-align:center;padding:4px 8px"><label class="chk"><input type="checkbox" data-item="' + it.id + '" data-check="especialidad" ' + (it.especialidad ? "checked" : "") + ' title="Instalaciones eléctricas/CCDD/CCTV, clima, ascensores, gas"/> Esp.</label></td>' +
+        '<td class="pill-cell">' + pillHtml(estMat.status, estMat.issues) + '</td>' +
+        '<td style="padding:0 8px;text-align:right"><button class="rowdel" data-del="' + it.id + '" title="Eliminar partida">✕</button></td>' +
+        '</tr>' +
+        '<tr class="mat-sub">' +
+        '<td colspan="6">' +
+        '<div class="mat-sub-inner">' +
+        '<div class="mat-sub-label">Materiales · Herramientas · Máquinas · Equipos</div>' +
         (filasMat.length
-          ? '<div class="grid-wrap" style="border:none;border-radius:0"><table class="grid"><thead><tr><th style="width:22%">Nombre</th><th style="width:14%">Tipo</th><th>Detalle</th><th style="width:10%">Cant.</th><th style="width:9%">Unidad</th><th style="width:32px"></th></tr></thead><tbody>' + filasMatHtml + "</tbody></table></div>"
-          : "") +
-        '<button class="small" style="margin-top:8px" data-addmat="' + it.id + '">+ Agregar material/herramienta</button>' +
-        "</div></div>"
-      );
-    })
-    .join("");
+          ? '<div class="grid-wrap" style="border:none;border-radius:0;margin-bottom:6px"><table class="grid" style="min-width:0"><thead><tr><th>Nombre</th><th style="width:13%">Tipo</th><th>Detalle (calidad/marca/modelo/formato/color)</th><th style="width:9%">Cant.</th><th style="width:8%">Unidad</th><th style="width:32px"></th></tr></thead><tbody>' + filasMatHtml + '</tbody></table></div>'
+          : '') +
+        '<button class="small" data-addmat="' + it.id + '">+ Agregar material / herramienta / máquina / equipo</button>' +
+        '</div>' +
+        '</td>' +
+        '</tr>' +
+        '</tbody>';
+    }
+  });
+
+  cont.innerHTML =
+    '<div class="grid-wrap"><table class="grid" style="min-width:520px">' +
+    '<colgroup><col style="width:90px"><col><col style="width:80px"><col style="width:100px"><col style="width:135px"><col style="width:36px"></colgroup>' +
+    '<thead><tr><th>Item</th><th>Descripción</th><th>Unidad</th><th>Especialidad</th><th>Materiales</th><th></th></tr></thead>' +
+    tbodiesHtml +
+    '</table></div>';
   document.getElementById("chip-itemizado").textContent = partidas().length + " partida(s) · " + state.itemizado.filter(esTitulo).length + " título(s) de sección";
 }
 
@@ -1684,8 +1706,13 @@ function filasItemizadoCompleto() {
 }
 
 document.getElementById("btn-export-xlsx-itemizado").addEventListener("click", async () => {
-  const blob = await generarXlsx([{ nombre: "Itemizado", filas: filasItemizadoCompleto() }]);
-  descargarBlob("itemizado_y_materiales.xlsx", blob);
+  try {
+    const blob = await generarXlsx([{ nombre: "Itemizado", filas: filasItemizadoCompleto() }]);
+    descargarBlob("itemizado_y_materiales.xlsx", blob);
+  } catch (err) {
+    mostrarAviso("Error al generar el Excel: " + err.message, "warn");
+    console.error("Error al exportar Itemizado:", err);
+  }
 });
 
 document.getElementById("btn-import-xlsx-itemizado").addEventListener("click", () => document.getElementById("file-xlsx-itemizado").click());
@@ -1768,8 +1795,13 @@ function filasCubicacionesCompleto() {
 }
 
 document.getElementById("btn-plantilla-xlsx-cubicaciones").addEventListener("click", async () => {
-  const blob = await generarXlsx([{ nombre: "Cubicaciones", filas: filasCubicacionesCompleto() }]);
-  descargarBlob("cubicaciones.xlsx", blob);
+  try {
+    const blob = await generarXlsx([{ nombre: "Cubicaciones", filas: filasCubicacionesCompleto() }]);
+    descargarBlob("cubicaciones.xlsx", blob);
+  } catch (err) {
+    mostrarAviso("Error al generar el Excel: " + err.message, "warn");
+    console.error("Error al exportar Cubicaciones:", err);
+  }
 });
 
 document.getElementById("btn-import-xlsx-cubicaciones").addEventListener("click", () => document.getElementById("file-xlsx-cubicaciones").click());
@@ -1810,9 +1842,14 @@ function leerEett(itemId) {
   return state.eett[itemId] || { detalle: "", marcado: false };
 }
 document.getElementById("btn-plantilla-xlsx-eett").addEventListener("click", async () => {
-  const filas = [["ITEM", "DETALLE", "MARCADO"]].concat(partidas().map((it) => { const e = leerEett(it.id); return [it.item, e.detalle, e.marcado ? "SI" : "NO"]; }));
-  const blob = await generarXlsx([{ nombre: "EETT", filas }]);
-  descargarBlob("especificaciones-tecnicas.xlsx", blob);
+  try {
+    const filas = [["ITEM", "DETALLE", "MARCADO"]].concat(partidas().map((it) => { const e = leerEett(it.id); return [it.item, e.detalle, e.marcado ? "SI" : "NO"]; }));
+    const blob = await generarXlsx([{ nombre: "EETT", filas }]);
+    descargarBlob("especificaciones-tecnicas.xlsx", blob);
+  } catch (err) {
+    mostrarAviso("Error al generar el Excel: " + err.message, "warn");
+    console.error("Error al exportar EETT:", err);
+  }
 });
 document.getElementById("btn-import-xlsx-eett").addEventListener("click", () => document.getElementById("file-xlsx-eett").click());
 document.getElementById("file-xlsx-eett").addEventListener("change", async (e) => {
@@ -2177,6 +2214,7 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
     mostrarAviso("Agrega partidas en el Itemizado antes de descargar la planilla completa.", "warn");
     return;
   }
+  try {
 
   const hojaResumen = [["ENTREGABLE", "PARTIDAS", "REALIZADAS", "CORRECTAS", "MAL_EJECUTADAS", "FALTANTES"]];
   DELIVERABLES.forEach((d) => {
@@ -2245,6 +2283,10 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
   const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
   descargarBlob(slug + "-formulacion-completa.xlsx", blob);
   mostrarAviso("Planilla Excel completa descargada.", "ok");
+  } catch (err) {
+    mostrarAviso("Error al generar la planilla: " + err.message, "warn");
+    console.error("Error al descargar planilla completa:", err);
+  }
 });
 
 /* ======================= Orquestación ======================= */
