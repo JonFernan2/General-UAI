@@ -309,6 +309,9 @@
   .legend .i-mal { background: var(--bad); }
   .legend .i-falta { background: var(--warn); opacity: 0.65; }
 
+  /* ---------- Cotizaciones ---------- */
+  .cot-subtitulo { display: flex; align-items: center; gap: 10px; margin: 22px 0 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+
   /* ---------- Grids (tabla simple, usada por EETT) ---------- */
   .grid-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); }
   table.grid { border-collapse: collapse; width: 100%; min-width: 560px; }
@@ -441,6 +444,7 @@
       <button class="tab-btn" data-tab="itemizado"><span class="num">01</span><span class="label">Listado de Actividades</span><span class="badge" id="badge-itemizado">0</span></button>
       <button class="tab-btn" data-tab="cubicaciones"><span class="num">02</span><span class="label">Cubicaciones</span><span class="badge" id="badge-cubicaciones">0</span></button>
       <button class="tab-btn" data-tab="eett"><span class="num">03</span><span class="label">Espec. Técnicas</span><span class="badge" id="badge-eett">0</span></button>
+      <button class="tab-btn" data-tab="cotizaciones"><span class="num">04</span><span class="label">Cotizaciones</span><span class="badge" id="badge-cotizaciones">0</span></button>
     </nav>
     <div class="rail-footer">
       <div class="save-state" id="save-state">Sin cambios guardados</div>
@@ -569,6 +573,29 @@
       </div>
     </section>
 
+    <!-- ============ COTIZACIONES ============ -->
+    <section class="panel" id="panel-cotizaciones">
+      <h2 class="panel-title">04 · Cotizaciones</h2>
+      <p class="panel-sub">Registra las cotizaciones obtenidas para cada material/insumo, herramienta, máquina y equipo. Los materiales requieren <strong>mínimo 3 proveedores</strong> (marca la casilla "Solo 1 prov." solo si el producto tiene proveedor único en la zona). En cada fila indica el precio y el <strong>nombre exacto del archivo PDF</strong> de respaldo (ej. <code>cotizacion_madera_madertech.pdf</code>) — los PDFs se entregan en la carpeta de cotizaciones. Si cargas esa carpeta a continuación, el sistema verifica que cada nombre de archivo citado exista.</p>
+
+      <div class="toolbar">
+        <button class="small" id="btn-carpeta-cotizaciones">Cargar carpeta de cotizaciones</button>
+        <input type="file" id="file-carpeta-cotizaciones" webkitdirectory multiple style="display:none" />
+        <span class="count-chip" id="chip-carpeta-cotizaciones">Ninguna carpeta cargada</span>
+        <span class="spacer"></span>
+        <button class="small" id="btn-plantilla-xlsx-cotizaciones">Descargar plantilla de ejemplo (.xlsx)</button>
+        <button class="small" id="btn-import-xlsx-cotizaciones">Importar Excel (.xlsx)</button>
+        <input type="file" id="file-xlsx-cotizaciones" accept=".xlsx" style="display:none" />
+        <button class="small" id="btn-export-xlsx-cotizaciones">Descargar mis datos (.xlsx)</button>
+        <span class="count-chip" id="chip-cotizaciones">0 fila(s)</span>
+      </div>
+
+      <div id="cotizaciones-materiales-wrap"></div>
+      <div id="cotizaciones-herramientas-wrap"></div>
+      <div id="cotizaciones-maquinas-wrap"></div>
+      <div id="cotizaciones-equipos-wrap"></div>
+    </section>
+
     <footer class="legal">
       Basado en la "Guía de Desarrollo Asignatura Proyecto de Título" (Ingeniería en Construcción, Universidad Viña del Mar) — sección 1.1 Formulación de Proyecto de Título, Entrega N°1. Herramienta de apoyo no oficial: la validación de Especificaciones Técnicas es heurística: revisa siempre el documento Word completo antes de entregar. Todos los datos se guardan solo en este navegador (localStorage); usa "Guardar progreso" para respaldarlos.
     </footer>
@@ -613,8 +640,12 @@ function estadoInicial() {
     itemizado: [],
     cubicaciones: {},
     eett: {},
-    materiales: [],
-    cotizaciones: {},
+    cotizaciones: {
+      materiales:   [],
+      herramientas: [],
+      maquinas:     [],
+      equipos:      [],
+    },
   };
 }
 
@@ -627,11 +658,19 @@ function cargarEstado() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return estadoInicial();
     const datos = JSON.parse(raw);
-    return Object.assign(estadoInicial(), datos);
+    const estado = Object.assign(estadoInicial(), datos);
+    // Migrar formato anterior de cotizaciones (objeto plano de IDs) al nuevo (4 arrays)
+    if (!estado.cotizaciones || !Array.isArray(estado.cotizaciones.materiales)) {
+      estado.cotizaciones = estadoInicial().cotizaciones;
+    }
+    return estado;
   } catch (e) {
     return estadoInicial();
   }
 }
+
+// Archivos PDF cargados desde la carpeta del estudiante (en memoria, no persisten)
+let archivosSubidos = new Set();
 
 let guardarTimeout = null;
 function programarGuardado() {
@@ -921,6 +960,60 @@ function estadoEett(item) {
   return { status: issues.length === 0 ? "correcto" : "mal", issues };
 }
 
+/* ======================= Motor de validación: Cotizaciones ======================= */
+function normArchivo(s) {
+  return String(s || "").trim().toLowerCase().replace(/\.[^.]+$/, "");
+}
+function archivoEncontrado(nombreArchivo) {
+  if (!archivosSubidos.size) return null; // carpeta no cargada → no validar
+  return archivosSubidos.has(normArchivo(nombreArchivo));
+}
+
+function estadoCotMatFila(f) {
+  const vacio = !f.nombre && !f.p1 && !f.p2 && !f.p3 && !f.archivo;
+  if (vacio) return { status: "faltante", issues: ["Fila vacía."] };
+  const issues = [];
+  if (!f.nombre || !f.nombre.trim()) issues.push("Falta nombre del material.");
+  if (!(parseNumeroCL(f.p1 || "") > 0)) issues.push("Falta precio Proveedor 01.");
+  if (!f.unico) {
+    if (!(parseNumeroCL(f.p2 || "") > 0)) issues.push("Falta precio Proveedor 02.");
+    if (!(parseNumeroCL(f.p3 || "") > 0)) issues.push("Falta precio Proveedor 03.");
+  }
+  if (!f.archivo || !f.archivo.trim()) {
+    issues.push("Falta nombre del archivo de cotización.");
+  } else if (archivoEncontrado(f.archivo) === false) {
+    issues.push('Archivo "' + f.archivo + '" no encontrado en la carpeta cargada.');
+  }
+  return { status: issues.length === 0 ? "correcto" : "mal", issues };
+}
+function estadoCotUnoFila(f) {
+  const vacio = !f.nombre && !f.p1 && !f.archivo;
+  if (vacio) return { status: "faltante", issues: ["Fila vacía."] };
+  const issues = [];
+  if (!f.nombre || !f.nombre.trim()) issues.push("Falta descripción.");
+  if (!(parseNumeroCL(f.p1 || "") > 0)) issues.push("Falta precio del proveedor.");
+  if (!f.archivo || !f.archivo.trim()) {
+    issues.push("Falta nombre del archivo de cotización.");
+  } else if (archivoEncontrado(f.archivo) === false) {
+    issues.push('Archivo "' + f.archivo + '" no encontrado en la carpeta cargada.');
+  }
+  return { status: issues.length === 0 ? "correcto" : "mal", issues };
+}
+
+function resumenCotizaciones() {
+  const estados = [
+    ...state.cotizaciones.materiales.map(estadoCotMatFila),
+    ...state.cotizaciones.herramientas.map(estadoCotUnoFila),
+    ...state.cotizaciones.maquinas.map(estadoCotUnoFila),
+    ...state.cotizaciones.equipos.map(estadoCotUnoFila),
+  ];
+  const total = estados.length;
+  const correctas = estados.filter((e) => e.status === "correcto").length;
+  const mal = estados.filter((e) => e.status === "mal").length;
+  const faltantes = estados.filter((e) => e.status === "faltante").length;
+  return { total, realizadas: correctas + mal, correctas, mal, faltantes, excluidas: 0 };
+}
+
 function resumenEntregable(estadoFn) {
   // Las partidas con estado "excluida" (títulos de sección, o especialidades en Cubicaciones)
   // no cuentan en el total exigido, pero se informan aparte para que quede claro que se
@@ -970,6 +1063,7 @@ function pillHtml(status, issues) {
 
 function renderResumen() {
   const resumenes = DELIVERABLES.map((d) => Object.assign({}, d, resumenEntregable(d.fn)));
+  const rCot = Object.assign({ nombre: "04 · Cotizaciones", key: "cotizaciones" }, resumenCotizaciones());
   const totalPartidas = partidas().length;
 
   const totalCorrectas = resumenes.reduce((a, r) => a + r.correctas, 0);
@@ -979,36 +1073,38 @@ function renderResumen() {
 
   const tiles = [
     { label: "Partidas en itemizado", value: totalPartidas, tone: "" },
-    { label: "Correctas (2 entregables)", value: totalCorrectas, tone: "ok" },
+    { label: "Correctas (Cub. + EETT)", value: totalCorrectas, tone: "ok" },
     { label: "Mal ejecutadas", value: totalMal, tone: "bad" },
     { label: "Faltantes", value: totalFaltantes, tone: "warn" },
-    { label: "Avance global", value: totalPosible ? Math.round((totalCorrectas / totalPosible) * 100) + "%" : "—", tone: "" },
+    { label: "Avance (Cub. + EETT)", value: totalPosible ? Math.round((totalCorrectas / totalPosible) * 100) + "%" : "—", tone: "" },
   ];
   document.getElementById("stat-grid-global").innerHTML = tiles
     .map((t) => '<div class="stat-tile" data-tone="' + t.tone + '"><div class="stat-label">' + esc(t.label) + '</div><div class="stat-value">' + esc(t.value) + "</div></div>")
     .join("");
 
+  const filaResumen = (r, nota) => {
+    const pctOk = r.total ? (r.correctas / r.total) * 100 : 0;
+    const pctMal = r.total ? (r.mal / r.total) * 100 : 0;
+    const pctFalta = r.total ? (r.faltantes / r.total) * 100 : 0;
+    const notaExcl = r.excluidas ? ' <span style="color:var(--accent);font-weight:400">(' + r.excluidas + " excluida" + (r.excluidas > 1 ? "s" : "") + ")</span>" : "";
+    return (
+      "<tr><td class=\"name\">" + esc(r.nombre) + notaExcl + (nota ? ' <span style="font-size:10px;color:var(--ink-faint)">' + nota + "</span>" : "") + "</td>" +
+      '<td class="num">' + r.total + "</td>" +
+      '<td class="num">' + r.realizadas + "</td>" +
+      '<td class="num" style="color:var(--ok)">' + r.correctas + "</td>" +
+      '<td class="num" style="color:var(--bad)">' + r.mal + "</td>" +
+      '<td class="num" style="color:var(--warn)">' + r.faltantes + "</td>" +
+      '<td><div class="stackbar"><span class="seg-ok" style="width:' + pctOk + '%"></span><span class="seg-mal" style="width:' + pctMal + '%"></span><span class="seg-falta" style="width:' + pctFalta + '%"></span></div></td></tr>'
+    );
+  };
+
   const body = document.getElementById("tabla-resumen-body");
   if (totalPartidas === 0) {
     body.innerHTML = '<tr><td colspan="7" style="padding:16px;color:var(--ink-faint)">Aún no hay partidas cargadas. Comienza en la pestaña <strong>01 · Itemizado</strong>.</td></tr>';
   } else {
-    body.innerHTML = resumenes
-      .map((r) => {
-        const pctOk = r.total ? (r.correctas / r.total) * 100 : 0;
-        const pctMal = r.total ? (r.mal / r.total) * 100 : 0;
-        const pctFalta = r.total ? (r.faltantes / r.total) * 100 : 0;
-        const notaExcluidas = r.excluidas ? ' <span style="color:var(--accent);font-weight:400">(' + r.excluidas + " excluida" + (r.excluidas > 1 ? "s" : "") + ")</span>" : "";
-        return (
-          "<tr><td class=\"name\">" + esc(r.nombre) + notaExcluidas + "</td>" +
-          '<td class="num">' + r.total + "</td>" +
-          '<td class="num">' + r.realizadas + "</td>" +
-          '<td class="num" style="color:var(--ok)">' + r.correctas + "</td>" +
-          '<td class="num" style="color:var(--bad)">' + r.mal + "</td>" +
-          '<td class="num" style="color:var(--warn)">' + r.faltantes + "</td>" +
-          '<td><div class="stackbar"><span class="seg-ok" style="width:' + pctOk + '%"></span><span class="seg-mal" style="width:' + pctMal + '%"></span><span class="seg-falta" style="width:' + pctFalta + '%"></span></div></td></tr>'
-        );
-      })
-      .join("");
+    body.innerHTML =
+      resumenes.map((r) => filaResumen(r, "")).join("") +
+      filaResumen(rCot, "(filas)");
   }
 
   setBadge("badge-itemizado", totalPartidas, true);
@@ -1016,6 +1112,7 @@ function renderResumen() {
     const r = resumenEntregable(d.fn);
     setBadge("badge-" + d.key, r.mal + r.faltantes, false);
   });
+  setBadge("badge-cotizaciones", rCot.mal + rCot.faltantes, false);
 }
 
 /* ======================= Paste genérico (pegar desde Excel) ======================= */
@@ -2068,11 +2165,26 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
     hojaEett.push([it.item, it.descripcion, e.detalle, e.marcado ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
   });
 
+  const hojaCotizaciones = [["TIPO", "N°", "DESCRIPCION", "P_PROV_01", "P_PROV_02", "P_PROV_03", "SOLO_UN_PROV", "ARCHIVO", "ESTADO"]];
+  state.cotizaciones.materiales.forEach(function(f, i) {
+    hojaCotizaciones.push(["MATERIAL", i + 1, f.nombre, f.p1, f.p2, f.p3, f.unico ? "SI" : "NO", f.archivo, estadoCotMatFila(f).status.toUpperCase()]);
+  });
+  state.cotizaciones.herramientas.forEach(function(f, i) {
+    hojaCotizaciones.push(["HERRAMIENTA", i + 1, f.nombre, f.p1, "", "", "", f.archivo, estadoCotUnoFila(f).status.toUpperCase()]);
+  });
+  state.cotizaciones.maquinas.forEach(function(f, i) {
+    hojaCotizaciones.push(["MAQUINA", i + 1, f.nombre, f.p1, "", "", "", f.archivo, estadoCotUnoFila(f).status.toUpperCase()]);
+  });
+  state.cotizaciones.equipos.forEach(function(f, i) {
+    hojaCotizaciones.push(["EQUIPO", i + 1, f.nombre, f.p1, "", "", "", f.archivo, estadoCotUnoFila(f).status.toUpperCase()]);
+  });
+
   const blob = await generarXlsx([
-    { nombre: "Resumen", filas: hojaResumen },
-    { nombre: "Itemizado", filas: hojaItemizado },
-    { nombre: "Cubicaciones", filas: hojaCubicaciones },
-    { nombre: "EETT", filas: hojaEett },
+    { nombre: "Resumen",       filas: hojaResumen },
+    { nombre: "Itemizado",     filas: hojaItemizado },
+    { nombre: "Cubicaciones",  filas: hojaCubicaciones },
+    { nombre: "EETT",          filas: hojaEett },
+    { nombre: "Cotizaciones",  filas: hojaCotizaciones },
   ]);
   const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
   descargarBlob(slug + "-formulacion-completa.xlsx", blob);
@@ -2083,10 +2195,284 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
   }
 });
 
+/* ======================= Cotizaciones: render ======================= */
+function addCotFila(tipo, valores) {
+  const defaults = tipo === "materiales"
+    ? { id: nuevoId(), nombre: "", p1: "", p2: "", p3: "", unico: false, archivo: "" }
+    : { id: nuevoId(), nombre: "", p1: "", archivo: "" };
+  const fila = Object.assign(defaults, valores || {});
+  state.cotizaciones[tipo].push(fila);
+  return fila;
+}
+
+function renderCotSubtabla(tipo, titulo, esMultiProv) {
+  const lista = state.cotizaciones[tipo];
+  const wrap = document.getElementById("cotizaciones-" + tipo + "-wrap");
+  if (!wrap) return;
+
+  let thead, filas;
+  if (esMultiProv) {
+    thead =
+      '<th style="width:36px;text-align:center">N°</th>' +
+      '<th>Material / Insumo</th>' +
+      '<th style="width:120px">P. Proveedor 01</th>' +
+      '<th style="width:120px">P. Proveedor 02</th>' +
+      '<th style="width:120px">P. Proveedor 03</th>' +
+      '<th style="width:70px;text-align:center">Solo 1 prov.</th>' +
+      '<th style="width:160px">Archivo cotización</th>' +
+      '<th style="width:100px">Estado</th>' +
+      '<th style="width:36px"></th>';
+    filas = lista.map(function(f, i) {
+      const est = estadoCotMatFila(f);
+      const ph = pillHtml(est.status, est.issues);
+      const dis = f.unico ? ' disabled style="opacity:.4"' : '';
+      return (
+        '<tr data-cot-id="' + f.id + '" data-cot-tipo="' + tipo + '">' +
+        '<td style="text-align:center;color:var(--ink-faint);font-size:12px">' + (i + 1) + '</td>' +
+        '<td><input type="text" data-field="nombre" value="' + esc(f.nombre) + '" placeholder="Nombre del material o insumo" /></td>' +
+        '<td><input type="text" data-field="p1" value="' + esc(f.p1) + '" placeholder="$ 0" /></td>' +
+        '<td><input type="text" data-field="p2" value="' + esc(f.p2) + '" placeholder="$ 0"' + dis + ' /></td>' +
+        '<td><input type="text" data-field="p3" value="' + esc(f.p3) + '" placeholder="$ 0"' + dis + ' /></td>' +
+        '<td style="text-align:center"><label class="chk"><input type="checkbox" data-field="unico"' + (f.unico ? ' checked' : '') + ' /></label></td>' +
+        '<td><input type="text" data-field="archivo" value="' + esc(f.archivo) + '" placeholder="cotizacion.pdf" /></td>' +
+        '<td>' + ph + '</td>' +
+        '<td style="text-align:right"><button class="rowdel" data-cot-del="' + f.id + '" data-cot-tipo="' + tipo + '" title="Eliminar">✕</button></td>' +
+        '</tr>'
+      );
+    }).join("");
+  } else {
+    const tipoLabel = { herramientas: "Herramienta", maquinas: "Máquina", equipos: "Equipo" }[tipo] || "Descripción";
+    const prLabel = tipo === "herramientas" || tipo === "maquinas" ? "P. Arriendo" : "P. Proveedor";
+    thead =
+      '<th style="width:36px;text-align:center">N°</th>' +
+      '<th>' + tipoLabel + '</th>' +
+      '<th style="width:150px">' + prLabel + '</th>' +
+      '<th style="width:180px">Archivo cotización</th>' +
+      '<th style="width:100px">Estado</th>' +
+      '<th style="width:36px"></th>';
+    filas = lista.map(function(f, i) {
+      const est = estadoCotUnoFila(f);
+      const ph = pillHtml(est.status, est.issues);
+      return (
+        '<tr data-cot-id="' + f.id + '" data-cot-tipo="' + tipo + '">' +
+        '<td style="text-align:center;color:var(--ink-faint);font-size:12px">' + (i + 1) + '</td>' +
+        '<td><input type="text" data-field="nombre" value="' + esc(f.nombre) + '" placeholder="Descripción" /></td>' +
+        '<td><input type="text" data-field="p1" value="' + esc(f.p1) + '" placeholder="$ 0" /></td>' +
+        '<td><input type="text" data-field="archivo" value="' + esc(f.archivo) + '" placeholder="cotizacion.pdf" /></td>' +
+        '<td>' + ph + '</td>' +
+        '<td style="text-align:right"><button class="rowdel" data-cot-del="' + f.id + '" data-cot-tipo="' + tipo + '" title="Eliminar">✕</button></td>' +
+        '</tr>'
+      );
+    }).join("");
+  }
+
+  wrap.innerHTML =
+    '<div class="cot-subtitulo">' +
+    '<span>' + esc(titulo) + '</span>' +
+    '<button class="small" data-cot-add="' + tipo + '" style="flex-shrink:0">+ Agregar fila</button>' +
+    '</div>' +
+    '<div class="grid-wrap">' +
+    '<table class="grid" style="min-width:520px">' +
+    '<thead><tr>' + thead + '</tr></thead>' +
+    '<tbody>' + filas + '</tbody>' +
+    '</table></div>';
+}
+
+function renderCotizaciones() {
+  renderCotSubtabla("materiales", "4.1 · Cotización de Materiales / Insumos (mín. 3 proveedores)", true);
+  renderCotSubtabla("herramientas", "4.2 · Cotización de Herramientas (arriendo)", false);
+  renderCotSubtabla("maquinas", "4.3 · Cotización de Máquinas (arriendo)", false);
+  renderCotSubtabla("equipos", "4.4 · Cotización de Equipos", false);
+  const total = state.cotizaciones.materiales.length + state.cotizaciones.herramientas.length +
+    state.cotizaciones.maquinas.length + state.cotizaciones.equipos.length;
+  const chip = document.getElementById("chip-cotizaciones");
+  if (chip) chip.textContent = total + " fila(s) total";
+}
+
+/* ======================= Cotizaciones: eventos ======================= */
+const panelCot = document.getElementById("panel-cotizaciones");
+
+panelCot.addEventListener("input", function(e) {
+  const tr = e.target.closest("tr[data-cot-id]");
+  if (!tr) return;
+  const tipo = tr.dataset.cotTipo;
+  const id = tr.dataset.cotId;
+  const field = e.target.dataset.field;
+  if (!tipo || !id || !field) return;
+  const fila = state.cotizaciones[tipo].find(function(f) { return f.id === id; });
+  if (!fila) return;
+  fila[field] = e.target.value;
+  programarGuardado();
+  const est = tipo === "materiales" ? estadoCotMatFila(fila) : estadoCotUnoFila(fila);
+  const pillEl = tr.querySelector(".pill");
+  if (pillEl) {
+    const cfg = { correcto: ["ok", "✓ Correcta"], mal: ["mal", "⚠ Revisar"], faltante: ["falta", "— Faltante"] }[est.status];
+    if (cfg) { pillEl.className = "pill " + cfg[0]; pillEl.textContent = cfg[1]; pillEl.title = est.issues ? est.issues.join(" ") : ""; }
+  }
+  renderResumen();
+});
+
+panelCot.addEventListener("change", function(e) {
+  const tr = e.target.closest("tr[data-cot-id]");
+  if (!tr) return;
+  const tipo = tr.dataset.cotTipo;
+  const id = tr.dataset.cotId;
+  const field = e.target.dataset.field;
+  if (!tipo || !id || field !== "unico") return;
+  const fila = state.cotizaciones[tipo].find(function(f) { return f.id === id; });
+  if (!fila) return;
+  fila.unico = e.target.checked;
+  if (fila.unico) { fila.p2 = ""; fila.p3 = ""; }
+  programarGuardado();
+  renderCotizaciones();
+  renderResumen();
+});
+
+panelCot.addEventListener("click", function(e) {
+  const addBtn = e.target.closest("[data-cot-add]");
+  if (addBtn) {
+    addCotFila(addBtn.dataset.cotAdd);
+    programarGuardado();
+    renderCotizaciones();
+    renderResumen();
+    return;
+  }
+  const delBtn = e.target.closest("[data-cot-del]");
+  if (delBtn) {
+    const tipo = delBtn.dataset.cotTipo;
+    const id = delBtn.dataset.cotDel;
+    state.cotizaciones[tipo] = state.cotizaciones[tipo].filter(function(f) { return f.id !== id; });
+    programarGuardado();
+    renderCotizaciones();
+    renderResumen();
+  }
+});
+
+document.getElementById("btn-carpeta-cotizaciones").addEventListener("click", function() {
+  document.getElementById("file-carpeta-cotizaciones").click();
+});
+document.getElementById("file-carpeta-cotizaciones").addEventListener("change", function(e) {
+  const files = e.target.files;
+  if (!files || !files.length) { e.target.value = ""; return; }
+  archivosSubidos = new Set();
+  for (let i = 0; i < files.length; i++) archivosSubidos.add(normArchivo(files[i].name));
+  const chip = document.getElementById("chip-carpeta-cotizaciones");
+  if (chip) chip.textContent = archivosSubidos.size + " archivo(s) detectado(s) en la carpeta";
+  e.target.value = "";
+  renderCotizaciones();
+  renderResumen();
+});
+
+/* ---- Cotizaciones xlsx ---- */
+document.getElementById("btn-plantilla-xlsx-cotizaciones").addEventListener("click", async function() {
+  try {
+    const blob = await generarXlsx([
+      { nombre: "CotMateriales", filas: [
+        ["N°", "MATERIAL_INSUMO", "P_PROVEEDOR_01", "P_PROVEEDOR_02", "P_PROVEEDOR_03", "SOLO_UN_PROVEEDOR", "ARCHIVO"],
+        [1, "Madera pino dimensionado 2x3 (ml)", "45000", "42000", "48000", "NO", "cotizacion_madera_madertech.pdf"],
+        [2, "Hormigón H-25 premezclado (m3)", "89000", "92000", "86000", "NO", "cotizacion_hormigon_melco.pdf"],
+        [3, "Aislante lana de vidrio 50mm (m2)", "12500", "", "", "SI", "cotizacion_aislante_isover.pdf"],
+      ]},
+      { nombre: "CotHerramientas", filas: [
+        ["N°", "HERRAMIENTA", "P_ARRIENDO", "ARCHIVO"],
+        [1, "Andamio tubular (día)", "5000", "cotizacion_andamio_gasco.pdf"],
+        [2, "Compactador placa vibratoria (turno)", "18000", "cotizacion_compactador_belen.pdf"],
+      ]},
+      { nombre: "CotMaquinas", filas: [
+        ["N°", "MAQUINA", "P_ARRIENDO", "ARCHIVO"],
+        [1, "Excavadora 320C (turno 8 hrs)", "250000", "cotizacion_excavadora_finning.pdf"],
+        [2, "Grúa horquilla 3t (día)", "85000", "cotizacion_grua_horquilla_gm.pdf"],
+      ]},
+      { nombre: "CotEquipos", filas: [
+        ["N°", "EQUIPO", "P_PROVEEDOR", "ARCHIVO"],
+        [1, "Tablero eléctrico monofásico 12 circuitos", "95000", "cotizacion_tablero_schneider.pdf"],
+      ]},
+    ]);
+    descargarBlob("plantilla_cotizaciones.xlsx", blob);
+    mostrarAviso("Plantilla de cotizaciones descargada.", "ok");
+  } catch (err) {
+    mostrarAviso("Error al generar la plantilla: " + err.message, "warn");
+    console.error("Error plantilla cotizaciones:", err);
+  }
+});
+
+document.getElementById("btn-import-xlsx-cotizaciones").addEventListener("click", function() { document.getElementById("file-xlsx-cotizaciones").click(); });
+document.getElementById("file-xlsx-cotizaciones").addEventListener("change", async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = "";
+  try {
+    const { hojas } = await leerXlsx(await file.arrayBuffer());
+    let importadas = 0;
+    const vacia = function(row) { return !row || row.every(function(c) { return !c && c !== 0; }); };
+    (hojas["CotMateriales"] || []).slice(1).forEach(function(row) {
+      if (vacia(row)) return;
+      state.cotizaciones.materiales.push({ id: nuevoId(), nombre: String(row[1] || ""), p1: String(row[2] || ""), p2: String(row[3] || ""), p3: String(row[4] || ""), unico: /^(si|sí|1|true|x)$/i.test(String(row[5] || "").trim()), archivo: String(row[6] || "") });
+      importadas++;
+    });
+    (hojas["CotHerramientas"] || []).slice(1).forEach(function(row) {
+      if (vacia(row)) return;
+      state.cotizaciones.herramientas.push({ id: nuevoId(), nombre: String(row[1] || ""), p1: String(row[2] || ""), archivo: String(row[3] || "") });
+      importadas++;
+    });
+    (hojas["CotMaquinas"] || []).slice(1).forEach(function(row) {
+      if (vacia(row)) return;
+      state.cotizaciones.maquinas.push({ id: nuevoId(), nombre: String(row[1] || ""), p1: String(row[2] || ""), archivo: String(row[3] || "") });
+      importadas++;
+    });
+    (hojas["CotEquipos"] || []).slice(1).forEach(function(row) {
+      if (vacia(row)) return;
+      state.cotizaciones.equipos.push({ id: nuevoId(), nombre: String(row[1] || ""), p1: String(row[2] || ""), archivo: String(row[3] || "") });
+      importadas++;
+    });
+    mostrarAviso("Cotizaciones: " + importadas + " fila(s) importadas.", "ok");
+    programarGuardado();
+    renderCotizaciones();
+    renderResumen();
+  } catch (err) {
+    mostrarAviso("No se pudo leer el archivo: " + err.message, "warn");
+    console.error("Error importar cotizaciones:", err);
+  }
+});
+
+document.getElementById("btn-export-xlsx-cotizaciones").addEventListener("click", async function() {
+  try {
+    const hojaMat = [["N°", "MATERIAL_INSUMO", "P_PROVEEDOR_01", "P_PROVEEDOR_02", "P_PROVEEDOR_03", "SOLO_UN_PROVEEDOR", "ARCHIVO", "ESTADO"]];
+    state.cotizaciones.materiales.forEach(function(f, i) {
+      hojaMat.push([i + 1, f.nombre, f.p1, f.p2, f.p3, f.unico ? "SI" : "NO", f.archivo, estadoCotMatFila(f).status.toUpperCase()]);
+    });
+    const hojaHerr = [["N°", "HERRAMIENTA", "P_ARRIENDO", "ARCHIVO", "ESTADO"]];
+    state.cotizaciones.herramientas.forEach(function(f, i) {
+      hojaHerr.push([i + 1, f.nombre, f.p1, f.archivo, estadoCotUnoFila(f).status.toUpperCase()]);
+    });
+    const hojaMaq = [["N°", "MAQUINA", "P_ARRIENDO", "ARCHIVO", "ESTADO"]];
+    state.cotizaciones.maquinas.forEach(function(f, i) {
+      hojaMaq.push([i + 1, f.nombre, f.p1, f.archivo, estadoCotUnoFila(f).status.toUpperCase()]);
+    });
+    const hojaEqu = [["N°", "EQUIPO", "P_PROVEEDOR", "ARCHIVO", "ESTADO"]];
+    state.cotizaciones.equipos.forEach(function(f, i) {
+      hojaEqu.push([i + 1, f.nombre, f.p1, f.archivo, estadoCotUnoFila(f).status.toUpperCase()]);
+    });
+    const blob = await generarXlsx([
+      { nombre: "CotMateriales",   filas: hojaMat },
+      { nombre: "CotHerramientas", filas: hojaHerr },
+      { nombre: "CotMaquinas",     filas: hojaMaq },
+      { nombre: "CotEquipos",      filas: hojaEqu },
+    ]);
+    const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
+    descargarBlob(slug + "-cotizaciones.xlsx", blob);
+    mostrarAviso("Datos de cotizaciones descargados.", "ok");
+  } catch (err) {
+    mostrarAviso("Error al generar el Excel: " + err.message, "warn");
+    console.error("Error exportar cotizaciones:", err);
+  }
+});
+
 /* ======================= Orquestación ======================= */
 function renderDependientes() {
   renderCubicaciones();
   renderEett();
+  renderCotizaciones();
 }
 function renderTodo() {
   renderItemizado();
