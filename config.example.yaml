@@ -1,0 +1,18 @@
+# Copia este archivo (p.ej. a config.yaml) y ajústalo si tus cubicaciones
+# usan encabezados distintos a los alias por defecto, o si necesitas
+# tolerancias distintas para los cálculos aritméticos.
+
+# Alias adicionales por columna canónica. Se suman a los alias por defecto
+# definidos en cubicacion_review/config.py (no los reemplazan).
+column_aliases:
+  codigo: ["cod. presup.", "ítem contractual"]
+  precio_unitario: ["p.u.$", "costo unitario"]
+  total: ["monto total"]
+
+# Diferencia máxima aceptada entre cantidad x precio_unitario y total.
+# Se usa la mayor entre la tolerancia absoluta y el porcentaje del valor esperado.
+tolerancia_absoluta: 0.5      # en la moneda del presupuesto
+tolerancia_porcentual: 0.005  # 0.5%
+
+# Nombres de hoja que se deben ignorar (portada, notas, etc.)
+hojas_ignoradas: ["Portada", "Notas"]
