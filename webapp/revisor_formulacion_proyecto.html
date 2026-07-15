@@ -347,6 +347,7 @@
   table.grid tr[data-status="mal"] td.col-status { border-left: 3px solid var(--bad); }
   table.grid tr[data-status="correcto"] td.col-status { border-left: 3px solid var(--ok); }
   table.grid tr[data-status="faltante"] td.col-status { border-left: 3px solid var(--missing); }
+  table.grid tr[data-status="excluida"] td.col-status { border-left: 3px solid var(--accent); opacity: 0.7; }
   .pill {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em;
@@ -355,6 +356,7 @@
   .pill.ok { background: var(--ok-soft); color: var(--ok); }
   .pill.mal { background: var(--bad-soft); color: var(--bad); }
   .pill.falta { background: var(--missing-soft); color: var(--missing); }
+  .pill.excluida { background: var(--accent-soft); color: var(--accent); }
   .pill-cell { padding: 9px 10px; }
   .issues-list { margin: 4px 0 0; padding-left: 16px; font-size: 11px; color: var(--bad); }
   .rowdel { border: none; background: transparent; color: var(--ink-faint); font-size: 15px; padding: 6px 8px; }
@@ -471,7 +473,7 @@
     <!-- ============ ITEMIZADO ============ -->
     <section class="panel" id="panel-itemizado">
       <h2 class="panel-title">01 · Listado de Actividades (Itemizado)</h2>
-      <p class="panel-sub">Base de todo el resto de la planilla: ITEM, Descripción y Unidad. El ITEM debe coincidir con la numeración usada en las Especificaciones Técnicas. Puedes pegar directamente un bloque copiado desde Excel (selecciona la celda destino y pega con Ctrl+V).</p>
+      <p class="panel-sub">Base de todo el resto de la planilla: ITEM, Descripción y Unidad. El ITEM debe coincidir con la numeración usada en las Especificaciones Técnicas (documento Word). Puedes pegar directamente un bloque copiado desde Excel (selecciona la celda destino y pega con Ctrl+V). Marca <strong>Especialidad</strong> en las partidas de instalaciones eléctricas/CCDD/CCTV, clima, ascensores o redes de gas: quedan excluidas de la evaluación de <strong>Cubicaciones</strong> según la pauta (Proyectos de Obras Viales deben cubicar todas las partidas, sin excepción).</p>
 
       <div class="toolbar">
         <button class="primary small" id="btn-add-item">+ Agregar partida</button>
@@ -485,7 +487,7 @@
       <div class="grid-wrap">
         <table class="grid" id="tabla-itemizado">
           <thead>
-            <tr><th style="width:110px">Item</th><th>Descripción / Actividad</th><th style="width:130px">Unidad</th><th style="width:36px"></th></tr>
+            <tr><th style="width:110px">Item</th><th>Descripción / Actividad</th><th style="width:130px">Unidad</th><th style="width:100px">Especialidad</th><th style="width:36px"></th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -495,7 +497,11 @@
     <!-- ============ CUBICACIONES ============ -->
     <section class="panel" id="panel-cubicaciones">
       <h2 class="panel-title">02 · Cubicaciones geométricas</h2>
-      <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>), la <strong>cantidad</strong> resultante y el <strong>archivo de respaldo</strong> del cálculo (planilla, apunte escaneado o PDF). Se revisa que la fórmula corresponda a la geometría de la partida — <strong>2 dimensiones (base × altura) para m²</strong> y <strong>3 dimensiones (largo × ancho × alto) para m³</strong> — que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales y que las partidas en <code>un</code> sean números enteros — tal como exige la pauta (nunca se redondea al entero superior). Si la partida es un círculo, triángulo, trapecio u otra forma no rectangular, marca <strong>"forma irregular"</strong> para omitir el chequeo de N° de dimensiones (el resto de las validaciones se sigue aplicando).</p>
+      <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>) y la <strong>cantidad</strong> resultante. Se revisa que la fórmula corresponda a la geometría de la partida — <strong>2 dimensiones (base × altura) para m²</strong> y <strong>3 dimensiones (largo × ancho × alto) para m³</strong> — que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales exactos (nunca se redondea al entero superior) y que las partidas en <code>un</code> sean números enteros, nunca fracciones. Si la partida es un círculo, triángulo, trapecio u otra forma no rectangular, marca <strong>"forma irregular"</strong> para omitir el chequeo de N° de dimensiones (el resto de las validaciones se sigue aplicando). Las partidas marcadas como <strong>Especialidad</strong> en el Itemizado se muestran acá pero no se exigen ni se cuentan en el resumen.</p>
+
+      <div class="note">
+        <strong>Respaldo del cálculo:</strong> cada partida debe indicar en <strong>"Archivo de respaldo"</strong> la referencia exacta a la <strong>lámina/sección del plano</strong> usada para obtener la cotización (ej. <code>Lámina A-03, eje B-C</code>), de forma que se distinga con claridad. Puede ir como imagen/captura dentro del mismo archivo de respaldo (una foto o recorte del plano) o, si no es posible, como un <strong>archivo adicional único</strong> que reúna todos los respaldos ordenados e itemizados por código ITEM (ej. carpeta o PDF "Respaldos_Cubicacion.pdf" con una página por partida, en el mismo orden del Itemizado). Aquí solo registras el <em>nombre</em> de ese archivo/página de referencia — el respaldo en sí se entrega aparte.
+      </div>
 
       <div class="note">
         <strong>Formato de carga homogéneo:</strong> descarga la plantilla Excel (ya trae el mismo orden de partidas que tu Itemizado, en un archivo <code>.xlsx</code> real), complétala y vuelve a importarla. Cada fila se empareja por el código de <strong>ITEM</strong>, no por su posición — así el orden en que vengan las filas del archivo no importa, y cualquier código que no calce con el Itemizado se te informa al importar.
@@ -808,6 +814,16 @@ function validarFormaGeometrica(item, memoria, esIrregular) {
 }
 
 function estadoCubicacion(item) {
+  if (item.especialidad) {
+    return {
+      status: "excluida",
+      issues: [
+        "Partida de especialidad: excluida de la evaluación de cubicaciones según la pauta " +
+          "(instalaciones eléctricas/CCDD/CCTV, clima, ascensores, redes de gas). Se recomienda " +
+          "igual cubicarla para el presupuesto, pero no se exige ni se evalúa aquí.",
+      ],
+    };
+  }
   const c = state.cubicaciones[item.id] || {};
   const memoria = (c.memoria || "").trim();
   const cantidadStr = (c.cantidad || "").trim();
@@ -944,12 +960,17 @@ function estadoCotizacionesItem(item) {
 }
 
 function resumenEntregable(estadoFn) {
-  const filas = state.itemizado.map(estadoFn);
+  // Las partidas con estado "excluida" (ej. especialidades en Cubicaciones) no cuentan
+  // en el total exigido, pero se informan aparte para que quede claro que se excluyeron
+  // a propósito y no por un olvido.
+  const todas = state.itemizado.map(estadoFn);
+  const excluidas = todas.filter((f) => f.status === "excluida").length;
+  const filas = todas.filter((f) => f.status !== "excluida");
   const total = filas.length;
   const correctas = filas.filter((f) => f.status === "correcto").length;
   const mal = filas.filter((f) => f.status === "mal").length;
   const faltantes = filas.filter((f) => f.status === "faltante").length;
-  return { total, realizadas: correctas + mal, correctas, mal, faltantes };
+  return { total, realizadas: correctas + mal, correctas, mal, faltantes, excluidas };
 }
 
 /* ======================= Paste genérico (pegar desde Excel) ======================= */
@@ -1027,8 +1048,9 @@ function renderResumen() {
         const pctOk = r.total ? (r.correctas / r.total) * 100 : 0;
         const pctMal = r.total ? (r.mal / r.total) * 100 : 0;
         const pctFalta = r.total ? (r.faltantes / r.total) * 100 : 0;
+        const notaExcluidas = r.excluidas ? ' <span style="color:var(--accent);font-weight:400">(' + r.excluidas + " excluida" + (r.excluidas > 1 ? "s" : "") + ")</span>" : "";
         return (
-          "<tr><td class=\"name\">" + esc(r.nombre) + "</td>" +
+          "<tr><td class=\"name\">" + esc(r.nombre) + notaExcluidas + "</td>" +
           '<td class="num">' + r.total + "</td>" +
           '<td class="num">' + r.realizadas + "</td>" +
           '<td class="num" style="color:var(--ok)">' + r.correctas + "</td>" +
@@ -1049,7 +1071,7 @@ function renderResumen() {
 
 /* ======================= Render: Itemizado ======================= */
 function addItemRow(valores) {
-  const it = Object.assign({ id: nuevoId(), item: "", descripcion: "", unidad: "" }, valores || {});
+  const it = Object.assign({ id: nuevoId(), item: "", descripcion: "", unidad: "", especialidad: false }, valores || {});
   state.itemizado.push(it);
   return it;
 }
@@ -1067,12 +1089,24 @@ function renderItemizado() {
         '<td><input type="text" class="num" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="1.1" /></td>' +
         '<td><input type="text" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="Descripción de la actividad" /></td>' +
         '<td><input type="text" list="dl-unidades" data-row="' + i + '" data-col="2" data-field="unidad" value="' + esc(it.unidad) + '" placeholder="m2" /></td>' +
+        '<td style="text-align:center;padding:9px 0"><input type="checkbox" data-item="' + it.id + '" data-check="especialidad" title="Especialidad (eléctrico, clima, ascensores, gas): se excluye de la evaluación de Cubicaciones" ' + (it.especialidad ? "checked" : "") + " /></td>" +
         '<td><button class="rowdel" data-del="' + it.id + '" title="Eliminar partida">✕</button></td>' +
         "</tr>"
     )
     .join("");
   document.getElementById("chip-itemizado").textContent = state.itemizado.length + " partida(s)";
 }
+
+document.querySelector("#tabla-itemizado tbody").addEventListener("change", (e) => {
+  const t = e.target;
+  if (!t.matches('input[type="checkbox"]')) return;
+  const it = state.itemizado.find((x) => x.id === t.dataset.item);
+  if (!it) return;
+  it.especialidad = t.checked;
+  programarGuardado();
+  renderResumen();
+  renderDependientes();
+});
 
 document.querySelector("#tabla-itemizado tbody").addEventListener("input", (e) => {
   const t = e.target;
@@ -1517,10 +1551,15 @@ document.getElementById("file-xlsx-itemizado").addEventListener("change", async 
     const filas = await leerPrimeraHoja(file, "itemizado");
     let agregadas = 0;
     filas.forEach((f, i) => {
-      const [item, descripcion, unidad] = f;
+      const [item, descripcion, unidad, especialidad] = f;
       if (i === 0 && normItemCode(item) === "item") return;
       if (!item && !descripcion) return;
-      addItemRow({ item: item || "", descripcion: descripcion || "", unidad: unidad || "" });
+      addItemRow({
+        item: item || "",
+        descripcion: descripcion || "",
+        unidad: unidad || "",
+        especialidad: /^(si|sí|1|true|x)$/i.test((especialidad || "").trim()),
+      });
       agregadas++;
     });
     mostrarAviso("Itemizado: se agregaron " + agregadas + " partida(s) desde el Excel.", "ok");
@@ -1532,7 +1571,9 @@ document.getElementById("file-xlsx-itemizado").addEventListener("change", async 
   e.target.value = "";
 });
 document.getElementById("btn-export-xlsx-itemizado").addEventListener("click", async () => {
-  const filas = [["ITEM", "DESCRIPCION", "UNIDAD"]].concat(state.itemizado.map((it) => [it.item, it.descripcion, it.unidad]));
+  const filas = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"]].concat(
+    state.itemizado.map((it) => [it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO"])
+  );
   const blob = await generarXlsx([{ nombre: "Itemizado", filas }]);
   descargarBlob("itemizado.xlsx", blob);
 });
@@ -1643,7 +1684,12 @@ function getCub(itemId) {
 }
 
 function pillHtml(status, issues) {
-  const cfg = { correcto: ["ok", "✓ Correcta"], mal: ["mal", "⚠ Revisar"], faltante: ["falta", "— Faltante"] }[status];
+  const cfg = {
+    correcto: ["ok", "✓ Correcta"],
+    mal: ["mal", "⚠ Revisar"],
+    faltante: ["falta", "— Faltante"],
+    excluida: ["excluida", "○ Excluida"],
+  }[status];
   const title = issues && issues.length ? ' title="' + esc(issues.join(" ")) + '"' : "";
   return '<span class="pill ' + cfg[0] + '"' + title + ">" + cfg[1] + "</span>";
 }
@@ -1666,7 +1712,7 @@ function renderCubicaciones() {
         '<td class="readonly">' + esc(it.unidad) + "</td>" +
         '<td><textarea rows="1" data-row="' + i + '" data-col="0" data-item="' + it.id + '" data-field="memoria" placeholder="12,35 x 8,20 x 0,10">' + esc(c.memoria) + "</textarea></td>" +
         '<td><input type="text" class="num" data-row="' + i + '" data-col="1" data-item="' + it.id + '" data-field="cantidad" value="' + esc(c.cantidad) + '" placeholder="0,00" /></td>' +
-        '<td><input type="text" data-row="' + i + '" data-col="2" data-item="' + it.id + '" data-field="respaldo" value="' + esc(c.respaldo) + '" placeholder="Cub_' + esc(it.item || "X") + '.pdf" /></td>' +
+        '<td><input type="text" data-row="' + i + '" data-col="2" data-item="' + it.id + '" data-field="respaldo" value="' + esc(c.respaldo) + '" placeholder="Lámina A-03 · Respaldos_Cubicacion.pdf p.' + esc(it.item || "X") + '" /></td>' +
         '<td style="text-align:center;padding:9px 0"><input type="checkbox" data-item="' + it.id + '" data-check="irregular" title="Círculo / triángulo / trapecio u otra forma no rectangular" ' + (c.irregular ? "checked" : "") + " /></td>" +
         '<td class="pill-cell">' + pillHtml(est.status, est.issues) + "</td>" +
         "</tr>"
@@ -1986,13 +2032,19 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
     hojaResumen.push([d.nombre, r.total, r.realizadas, r.correctas, r.mal, r.faltantes]);
   });
 
-  const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD"]].concat(state.itemizado.map((it) => [it.item, it.descripcion, it.unidad]));
+  const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"]].concat(
+    state.itemizado.map((it) => [it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO"])
+  );
 
-  const hojaCubicaciones = [["ITEM", "DESCRIPCION", "UNIDAD", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR", "ESTADO", "OBSERVACIONES"]];
+  const hojaCubicaciones = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR", "ESTADO", "OBSERVACIONES"]];
   state.itemizado.forEach((it) => {
     const c = leerCub(it.id);
     const est = estadoCubicacion(it);
-    hojaCubicaciones.push([it.item, it.descripcion, it.unidad, c.memoria, c.cantidad, c.respaldo, c.irregular ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
+    hojaCubicaciones.push([
+      it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO",
+      c.memoria, c.cantidad, c.respaldo, c.irregular ? "SI" : "NO",
+      est.status.toUpperCase(), est.issues.join(" "),
+    ]);
   });
 
   const hojaEett = [["ITEM", "DESCRIPCION", "DETALLE", "MARCADO", "ESTADO", "OBSERVACIONES"]];
