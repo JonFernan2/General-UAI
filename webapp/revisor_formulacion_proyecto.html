@@ -254,7 +254,7 @@
   @keyframes fade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
 
   h2.panel-title { font-size: 17px; margin: 0 0 4px; letter-spacing: 0.01em; }
-  p.panel-sub { margin: 0 0 20px; color: var(--ink-soft); font-size: 12.5px; max-width: 74ch; }
+  p.panel-sub { margin: 0 0 20px; color: var(--ink-soft); font-size: 12.5px; max-width: 76ch; }
   p.panel-sub code { font-family: var(--mono); background: var(--accent-soft); padding: 0 4px; border-radius: 2px; }
 
   .note {
@@ -309,9 +309,9 @@
   .legend .i-mal { background: var(--bad); }
   .legend .i-falta { background: var(--warn); opacity: 0.65; }
 
-  /* ---------- Grids ---------- */
+  /* ---------- Grids (tabla simple, usada por EETT) ---------- */
   .grid-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); }
-  table.grid { border-collapse: collapse; width: 100%; min-width: 640px; }
+  table.grid { border-collapse: collapse; width: 100%; min-width: 560px; }
   table.grid th {
     position: sticky; top: 0;
     background: var(--paper-raised);
@@ -328,7 +328,6 @@
   table.grid td { border-bottom: 1px solid var(--line); padding: 0; vertical-align: top; }
   table.grid tr:hover td { background: var(--accent-soft); }
   table.grid td.readonly { padding: 9px 10px; color: var(--ink-soft); font-size: 12.5px; }
-  table.grid td .cellbox { display: block; width: 100%; }
   table.grid input[type="text"], table.grid textarea {
     width: 100%;
     border: none;
@@ -339,15 +338,14 @@
     font-size: 12.5px;
   }
   table.grid textarea { resize: vertical; min-height: 36px; font-family: var(--mono); }
-  table.grid input.num, table.grid td.col-cantidad input, table.grid td.col-precio input { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  table.grid input.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
   table.grid input:focus, table.grid textarea:focus { background: var(--accent-soft); outline: none; box-shadow: inset 0 0 0 1px var(--accent); }
   table.grid input::placeholder, table.grid textarea::placeholder { color: var(--ink-faint); font-style: italic; opacity: 1; }
-  table.grid td.status-mal { background: var(--bad-soft); }
-  table.grid td.status-falta { background: transparent; }
   table.grid tr[data-status="mal"] td.col-status { border-left: 3px solid var(--bad); }
   table.grid tr[data-status="correcto"] td.col-status { border-left: 3px solid var(--ok); }
   table.grid tr[data-status="faltante"] td.col-status { border-left: 3px solid var(--missing); }
   table.grid tr[data-status="excluida"] td.col-status { border-left: 3px solid var(--accent); opacity: 0.7; }
+
   .pill {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em;
@@ -358,20 +356,48 @@
   .pill.falta { background: var(--missing-soft); color: var(--missing); }
   .pill.excluida { background: var(--accent-soft); color: var(--accent); }
   .pill-cell { padding: 9px 10px; }
-  .issues-list { margin: 4px 0 0; padding-left: 16px; font-size: 11px; color: var(--bad); }
   .rowdel { border: none; background: transparent; color: var(--ink-faint); font-size: 15px; padding: 6px 8px; }
   .rowdel:hover { color: var(--bad); border: none; }
   .toolbar { display: flex; gap: 8px; margin: 14px 0 18px; flex-wrap: wrap; align-items: center; }
   .toolbar .spacer { flex: 1; }
   .count-chip { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
 
-  /* Materiales groups */
-  .item-group { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); margin-bottom: 12px; }
-  .item-group-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  /* ---------- Cards (Itemizado+Materiales, Cubicaciones, Cotizaciones) ---------- */
+  .item-group { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); margin-bottom: 10px; }
+  .item-group-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   .item-group-head .item-code { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 12.5px; }
   .item-group-head .item-desc { font-size: 12.5px; color: var(--ink-soft); flex: 1; }
   .item-group table.grid { min-width: 0; }
-  .item-group-foot { padding: 8px 14px; }
+  .item-group-foot { padding: 8px 14px 12px; }
+  .item-group-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+  .field-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .field-row label.chk { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+  .field-row input[type="text"], .field-row textarea {
+    border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper);
+    font: inherit; padding: 6px 8px; font-size: 12.5px; color: var(--ink);
+  }
+  .field-row input[type="text"]:focus, .field-row textarea:focus { background: var(--accent-soft); outline: none; border-color: var(--accent); }
+  .field-row input::placeholder, .field-row textarea::placeholder { color: var(--ink-faint); font-style: italic; }
+
+  /* Itemizado: cabecera de cada partida editable inline */
+  .row-item-code { width: 84px; font-family: var(--mono); font-weight: 700; }
+  .row-item-desc { flex: 1; min-width: 220px; }
+  .row-item-unidad { width: 90px; }
+  .item-group.es-titulo { background: var(--accent-soft); }
+  .item-group.es-titulo .item-group-head { border-bottom: none; }
+  .item-group.es-titulo .row-item-desc { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; background: transparent; border-color: transparent; }
+  .item-group.es-titulo .row-item-code { background: transparent; border-color: transparent; }
+
+  /* Cubicaciones: tabla de tramos */
+  .tramos-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  .tramos-table th { text-align: left; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); padding: 4px 6px; }
+  .tramos-table td { padding: 3px 6px; }
+  .tramos-table input[type="text"] { width: 100%; font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); padding: 5px 7px; font: inherit; font-size: 12.5px; }
+  .tramos-table input[type="text"]:focus { background: var(--accent-soft); outline: none; border-color: var(--accent); }
+  .tramos-table select { font: inherit; font-size: 12.5px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); padding: 5px; }
+  .memoria-preview { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); background: var(--paper); border: 1px dashed var(--line-strong); border-radius: var(--radius); padding: 8px 10px; }
+  .cantidad-total { font-family: var(--mono); font-size: 15px; font-weight: 700; }
 
   footer.legal { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11px; color: var(--ink-faint); }
 
@@ -406,11 +432,10 @@
     </div>
     <nav id="tab-nav">
       <button class="tab-btn active" data-tab="resumen"><span class="num">00</span><span class="label">Resumen</span></button>
-      <button class="tab-btn" data-tab="itemizado"><span class="num">01</span><span class="label">Itemizado</span><span class="badge" id="badge-itemizado">0</span></button>
+      <button class="tab-btn" data-tab="itemizado"><span class="num">01</span><span class="label">Itemizado y Materiales</span><span class="badge" id="badge-itemizado">0</span></button>
       <button class="tab-btn" data-tab="cubicaciones"><span class="num">02</span><span class="label">Cubicaciones</span><span class="badge" id="badge-cubicaciones">0</span></button>
       <button class="tab-btn" data-tab="eett"><span class="num">03</span><span class="label">Espec. Técnicas</span><span class="badge" id="badge-eett">0</span></button>
-      <button class="tab-btn" data-tab="materiales"><span class="num">04</span><span class="label">Materiales</span><span class="badge" id="badge-materiales">0</span></button>
-      <button class="tab-btn" data-tab="cotizaciones"><span class="num">05</span><span class="label">Cotizaciones</span><span class="badge" id="badge-cotizaciones">0</span></button>
+      <button class="tab-btn" data-tab="cotizaciones"><span class="num">04</span><span class="label">Cotizaciones</span><span class="badge" id="badge-cotizaciones">0</span></button>
     </nav>
     <div class="rail-footer">
       <div class="save-state" id="save-state">Sin cambios guardados</div>
@@ -434,7 +459,7 @@
     <!-- ============ RESUMEN ============ -->
     <section class="panel active" id="panel-resumen">
       <h2 class="panel-title">00 · Resumen general</h2>
-      <p class="panel-sub">Estado consolidado de los 4 entregables de la Entrega N°1 (Formulación de Proyecto de Título, Modalidad Licitación), calculado partida por partida contra el Itemizado.</p>
+      <p class="panel-sub">Estado consolidado de los 4 entregables de la Entrega N°1 (Formulación de Proyecto de Título, Modalidad Licitación), calculado partida por partida contra el Itemizado. Las Especificaciones Técnicas se entregan en Word — acá solo se audita cobertura y detalle, no reemplazan el documento.</p>
 
       <div class="toolbar" style="margin-top:0">
         <button class="primary small" id="btn-descargar-planilla-completa">Descargar planilla Excel completa (.xlsx)</button>
@@ -466,17 +491,18 @@
       </div>
 
       <div class="note">
-        <strong>Cómo se calcula:</strong> cada entregable se evalúa partida por partida usando como referencia el Itemizado (hoja 01). Una partida es <em>correcta</em> cuando pasa todas las validaciones automáticas de esa hoja, <em>mal ejecutada</em> cuando tiene datos pero con errores, y <em>faltante</em> cuando no se ha cargado información para ella. En Especificaciones Técnicas la validación es heurística (revisa longitud y palabras clave del detalle) — revísala igual manualmente antes de entregar.
+        <strong>Cómo se calcula:</strong> cada entregable se evalúa partida por partida usando como referencia el Itemizado. Una partida es <em>correcta</em> cuando pasa todas las validaciones automáticas de esa hoja, <em>mal ejecutada</em> cuando tiene datos pero con errores, y <em>faltante</em> cuando no se ha cargado información para ella. Las filas de <strong>título de sección</strong> y las partidas de <strong>especialidad</strong> (en Cubicaciones) se muestran como <em>excluidas</em> y no se cuentan. En Especificaciones Técnicas la validación es heurística (revisa longitud y palabras clave del detalle) — revísala igual manualmente en el documento Word antes de entregar.
       </div>
     </section>
 
-    <!-- ============ ITEMIZADO ============ -->
+    <!-- ============ ITEMIZADO + MATERIALES ============ -->
     <section class="panel" id="panel-itemizado">
-      <h2 class="panel-title">01 · Listado de Actividades (Itemizado)</h2>
-      <p class="panel-sub">Base de todo el resto de la planilla: ITEM, Descripción y Unidad. El ITEM debe coincidir con la numeración usada en las Especificaciones Técnicas (documento Word). Puedes pegar directamente un bloque copiado desde Excel (selecciona la celda destino y pega con Ctrl+V). Marca <strong>Especialidad</strong> en las partidas de instalaciones eléctricas/CCDD/CCTV, clima, ascensores o redes de gas: quedan excluidas de la evaluación de <strong>Cubicaciones</strong> según la pauta (Proyectos de Obras Viales deben cubicar todas las partidas, sin excepción).</p>
+      <h2 class="panel-title">01 · Listado de Actividades (Itemizado) y Materiales</h2>
+      <p class="panel-sub">Replica el formato de la pauta (Ejemplo 3): ITEM, Descripción y Unidad, con filas de <strong>título de sección</strong> para capítulos (ej. "2.0 OBRA GRUESA", sin unidad). El ITEM debe coincidir con la numeración usada en las Especificaciones Técnicas (documento Word). Cada partida incluye directamente debajo su <strong>listado de materiales, herramientas, máquinas y equipos</strong> — todo en una sola planilla, tal como se pidió. Marca <strong>Especialidad</strong> en instalaciones eléctricas/CCDD/CCTV, clima, ascensores o redes de gas: quedan excluidas de la evaluación de <strong>Cubicaciones</strong> (Proyectos de Obras Viales deben cubicar todas las partidas, sin excepción). Puedes pegar un bloque de ITEM/Descripción/Unidad copiado desde Excel directamente sobre los campos (Ctrl+V).</p>
 
       <div class="toolbar">
         <button class="primary small" id="btn-add-item">+ Agregar partida</button>
+        <button class="small" id="btn-add-titulo">+ Agregar título de sección</button>
         <button class="small" id="btn-import-xlsx-itemizado">Importar Excel (.xlsx)</button>
         <input type="file" id="file-xlsx-itemizado" accept=".xlsx" />
         <button class="small" id="btn-export-xlsx-itemizado">Descargar Excel (.xlsx)</button>
@@ -484,27 +510,16 @@
         <span class="count-chip" id="chip-itemizado"></span>
       </div>
 
-      <div class="grid-wrap">
-        <table class="grid" id="tabla-itemizado">
-          <thead>
-            <tr><th style="width:110px">Item</th><th>Descripción / Actividad</th><th style="width:130px">Unidad</th><th style="width:100px">Especialidad</th><th style="width:36px"></th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <div id="itemizado-list"></div>
     </section>
 
     <!-- ============ CUBICACIONES ============ -->
     <section class="panel" id="panel-cubicaciones">
       <h2 class="panel-title">02 · Cubicaciones geométricas</h2>
-      <p class="panel-sub">Cubicación exacta por partida: registra la <strong>memoria de cálculo</strong> (desarrollo dimensional, ej. <code>12,35 x 8,20 x 0,10</code>) y la <strong>cantidad</strong> resultante. Se revisa que la fórmula corresponda a la geometría de la partida — <strong>2 dimensiones (base × altura) para m²</strong> y <strong>3 dimensiones (largo × ancho × alto) para m³</strong> — que el resultado coincida con la cantidad declarada, que tenga al menos 2 decimales exactos (nunca se redondea al entero superior) y que las partidas en <code>un</code> sean números enteros, nunca fracciones. Si la partida es un círculo, triángulo, trapecio u otra forma no rectangular, marca <strong>"forma irregular"</strong> para omitir el chequeo de N° de dimensiones (el resto de las validaciones se sigue aplicando). Las partidas marcadas como <strong>Especialidad</strong> en el Itemizado se muestran acá pero no se exigen ni se cuentan en el resumen.</p>
+      <p class="panel-sub">Para partidas en <code>m²</code> y <code>m³</code> solo debes llenar las <strong>dimensiones</strong> (Base/Altura o Largo/Ancho/Alto) — la cantidad y la memoria de cálculo se generan solas, siempre con precisión exacta (nunca redondean). Agrega un <strong>tramo</strong> por cada pieza de una figura compuesta (ej. un muro con un vano que se resta) usando el signo +/-. Para <code>ml</code> se pide la longitud de cada tramo; para <code>un</code>, la cantidad exacta en número entero (nunca fracciones). Si es un círculo, triángulo, trapecio u otra forma no rectangular, marca <strong>"forma irregular"</strong> para escribir la fórmula libremente (ej. con π).</p>
 
       <div class="note">
-        <strong>Respaldo del cálculo:</strong> cada partida debe indicar en <strong>"Archivo de respaldo"</strong> la referencia exacta a la <strong>lámina/sección del plano</strong> usada para obtener la cotización (ej. <code>Lámina A-03, eje B-C</code>), de forma que se distinga con claridad. Puede ir como imagen/captura dentro del mismo archivo de respaldo (una foto o recorte del plano) o, si no es posible, como un <strong>archivo adicional único</strong> que reúna todos los respaldos ordenados e itemizados por código ITEM (ej. carpeta o PDF "Respaldos_Cubicacion.pdf" con una página por partida, en el mismo orden del Itemizado). Aquí solo registras el <em>nombre</em> de ese archivo/página de referencia — el respaldo en sí se entrega aparte.
-      </div>
-
-      <div class="note">
-        <strong>Formato de carga homogéneo:</strong> descarga la plantilla Excel (ya trae el mismo orden de partidas que tu Itemizado, en un archivo <code>.xlsx</code> real), complétala y vuelve a importarla. Cada fila se empareja por el código de <strong>ITEM</strong>, no por su posición — así el orden en que vengan las filas del archivo no importa, y cualquier código que no calce con el Itemizado se te informa al importar.
+        <strong>Respaldo del cálculo:</strong> cada partida debe indicar en <strong>"Archivo de respaldo"</strong> la referencia exacta a la <strong>lámina/sección del plano</strong> usada (ej. <code>Lámina A-03, eje B-C</code>). Puede ir como imagen/captura dentro del mismo archivo de respaldo o, si no es posible, como un <strong>archivo adicional único</strong> que reúna todos los respaldos ordenados e itemizados por código ITEM (ej. "Respaldos_Cubicacion.pdf" con una página por partida, en el mismo orden del Itemizado). Aquí solo registras el <em>nombre</em> de ese archivo/página — el respaldo en sí se entrega aparte. Las partidas de especialidad quedan excluidas de esta evaluación.
       </div>
 
       <div class="toolbar">
@@ -515,29 +530,13 @@
         <span class="count-chip" id="chip-cubicaciones"></span>
       </div>
 
-      <div class="grid-wrap">
-        <table class="grid" id="tabla-cubicaciones">
-          <thead>
-            <tr>
-              <th style="width:90px">Item</th>
-              <th style="width:220px">Descripción</th>
-              <th style="width:70px">Un.</th>
-              <th style="width:230px">Memoria de cálculo (desarrollo geométrico)</th>
-              <th style="width:110px">Cantidad</th>
-              <th style="width:170px">Archivo de respaldo</th>
-              <th style="width:60px">Irreg.</th>
-              <th style="width:180px">Estado</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <div id="cubicaciones-list"></div>
     </section>
 
     <!-- ============ EETT ============ -->
     <section class="panel" id="panel-eett">
       <h2 class="panel-title">03 · Especificaciones Técnicas modificadas</h2>
-      <p class="panel-sub">Las EETT se entregan en Word; aquí registras, por partida, el resumen de la modificación aplicada para poder auditar cobertura y nivel de detalle. Marca la casilla cuando el cambio esté correctamente resaltado en amarillo (agregado) o tachado (eliminado) en el documento Word.</p>
+      <p class="panel-sub">Las EETT se entregan en <strong>formato Word</strong> (no en esta planilla): se estudia la planimetría, se modifican/complementan según corresponda, indicando calidad, materialidad, tipo, formato, color, modelo y marca/proveedor de cada material — sin dejar nada a interpretación. Toda modificación agregada se resalta en <strong>amarillo</strong> y toda eliminación se <strong>tacha</strong>. Aquí registras, por partida, un resumen de esa modificación para auditar cobertura y nivel de detalle antes de entregar el Word; marca la casilla cuando el resaltado/tachado ya esté aplicado en el documento.</p>
 
       <div class="toolbar">
         <button class="small" id="btn-plantilla-xlsx-eett">Descargar plantilla/datos (.xlsx)</button>
@@ -563,26 +562,10 @@
       </div>
     </section>
 
-    <!-- ============ MATERIALES ============ -->
-    <section class="panel" id="panel-materiales">
-      <h2 class="panel-title">04 · Listado de Materiales, Herramientas, Máquinas y Equipos</h2>
-      <p class="panel-sub">Agrupado por partida. Agrega una línea por cada material, herramienta, máquina o equipo que la partida requiera; este listado alimenta automáticamente la hoja de Cotizaciones.</p>
-
-      <div class="toolbar">
-        <button class="small" id="btn-plantilla-xlsx-materiales">Descargar plantilla/datos (.xlsx)</button>
-        <button class="small" id="btn-import-xlsx-materiales">Importar Excel (.xlsx)</button>
-        <input type="file" id="file-xlsx-materiales" accept=".xlsx" />
-        <span class="spacer"></span>
-        <span class="count-chip" id="chip-materiales"></span>
-      </div>
-
-      <div id="materiales-groups"></div>
-    </section>
-
     <!-- ============ COTIZACIONES ============ -->
     <section class="panel" id="panel-cotizaciones">
-      <h2 class="panel-title">05 · Cotizaciones</h2>
-      <p class="panel-sub">Generada automáticamente desde el Listado de Materiales (04). Para <strong>materiales</strong> se exigen 3 proveedores (salvo que marques "proveedor único/exclusivo"); para herramientas, máquinas y equipos basta con 1. Las cotizaciones deben ser del año en curso y respaldarse en PDF — indica el nombre del archivo de respaldo.</p>
+      <h2 class="panel-title">04 · Cotizaciones</h2>
+      <p class="panel-sub">Generada automáticamente desde los materiales que agregaste en cada partida (hoja 01). Para <strong>materiales</strong> se exigen 3 proveedores (salvo que marques "proveedor único/exclusivo"); para herramientas, máquinas y equipos basta con 1. Las cotizaciones deben ser del año en curso y respaldarse en PDF — indica el nombre del archivo de respaldo.</p>
 
       <div class="toolbar">
         <span class="spacer"></span>
@@ -593,7 +576,7 @@
     </section>
 
     <footer class="legal">
-      Basado en la "Guía de Desarrollo Asignatura Proyecto de Título" (Ingeniería en Construcción, Universidad Viña del Mar) — sección 1.1 Formulación de Proyecto de Título, Entrega N°1. Herramienta de apoyo no oficial: la validación de Especificaciones Técnicas es heurística: revisa siempre el documento completo antes de entregar. Todos los datos se guardan solo en este navegador (localStorage); usa "Guardar progreso" para respaldarlos.
+      Basado en la "Guía de Desarrollo Asignatura Proyecto de Título" (Ingeniería en Construcción, Universidad Viña del Mar) — sección 1.1 Formulación de Proyecto de Título, Entrega N°1. Herramienta de apoyo no oficial: la validación de Especificaciones Técnicas es heurística: revisa siempre el documento Word completo antes de entregar. Todos los datos se guardan solo en este navegador (localStorage); usa "Guardar progreso" para respaldarlos.
     </footer>
   </main>
 </div>
@@ -619,12 +602,12 @@
 
 /* ======================= Constantes ======================= */
 const UNIDADES = ["ml", "m2", "m3", "kg", "un", "pm", "gl"];
-const TIPOS_MATERIAL = ["Material", "Herramienta", "Máquina", "Equipo"];
 const PALABRAS_CLAVE_EETT = [
   "marca", "modelo", "formato", "color", "tipo", "espesor",
   "calidad", "dimensi", "proveedor", "resistencia", "material", "acabado",
 ];
-const STORAGE_KEY = "revisor-formulacion-proyecto-v1";
+const STORAGE_KEY = "revisor-formulacion-proyecto-v2";
+const ETIQUETAS_DIM = { 3: ["Largo", "Ancho", "Alto"], 2: ["Base", "Altura"], 1: ["Longitud"] };
 
 /* ======================= Estado ======================= */
 let state = cargarEstado();
@@ -683,12 +666,6 @@ function parseNumeroCL(str) {
   return Number.isFinite(n) ? n : null;
 }
 
-function contarDecimalesTexto(str) {
-  const s = normalizarSeparadores(str);
-  const partes = s.split(".");
-  return partes[1] ? partes[1].length : 0;
-}
-
 function esEntero(n) {
   return Math.abs(n - Math.round(n)) < 1e-9;
 }
@@ -726,10 +703,20 @@ function esc(str) {
   return d.innerHTML.replace(/"/g, "&quot;");
 }
 
-/* ======================= Motor de validación ======================= */
+/* ======================= Itemizado: helpers de partidas ======================= */
+function esTitulo(it) {
+  return it.tipo === "titulo";
+}
+function partidas() {
+  return state.itemizado.filter((it) => !esTitulo(it));
+}
+function dimsPorUnidad(unidad) {
+  return { m3: 3, m2: 2, ml: 1 }[unidad] || 0;
+}
 
-// Separa una expresión en sus términos aditivos de nivel superior (fuera de paréntesis),
-// para poder evaluar cada "pieza" de una cubicación compuesta (ej. dos rectángulos sumados).
+/* ======================= Motor de validación: Cubicaciones ======================= */
+
+// Cálculo manual (fórmula libre): usado para kg/gl/pm, o m2/m3 marcados "forma irregular".
 function terminosAditivos(expr) {
   const terminos = [];
   let actual = "";
@@ -752,10 +739,6 @@ function terminosAditivos(expr) {
   if (actual.trim() !== "") terminos.push(actual);
   return terminos.length ? terminos : [expr];
 }
-
-// Cuenta cuántas dimensiones se están multiplicando en un término (ej. "12.35*8.20*0.10" = 3).
-// Ignora divisiones por constantes de ajuste de forma (/2 triángulo, /3 pirámide/cono, /4 círculo por diámetro)
-// y el factor π, que no representan una dimensión física adicional.
 function factoresDeTermino(termino) {
   let profundidad = 0;
   let factorActual = "";
@@ -772,7 +755,6 @@ function factoresDeTermino(termino) {
     factorActual += ch;
   }
   factores.push({ valor: factorActual, divide: false });
-
   let n = 0;
   factores.forEach((f) => {
     const v = f.valor.replace(/^\(+|\)+$/g, "").trim();
@@ -784,49 +766,15 @@ function factoresDeTermino(termino) {
   });
   return n;
 }
-
-// Verifica que el desarrollo corresponda a la geometría esperada según la unidad de la partida:
-// área (m2) = 2 dimensiones (base x altura); volumen (m3) = 3 dimensiones (largo x ancho x alto).
-function validarFormaGeometrica(item, memoria, esIrregular) {
-  const unidad = item.unidad;
-  const expr = memoria.replace(/[×xX]/g, "*").replace(/,/g, ".").replace(/\s+/g, "");
-  const terminos = terminosAditivos(expr);
-  const conteos = terminos.map(factoresDeTermino);
-
-  if (unidad === "m2" || unidad === "m3") {
-    if (esIrregular) return null; // círculo/triángulo/trapecio: se omite el chequeo estricto de N° de dimensiones
-    const esperado = unidad === "m2" ? 2 : 3;
-    const nombre = unidad === "m2" ? "área (base × altura)" : "volumen (largo × ancho × alto)";
-    const incorrectos = conteos.filter((n) => n !== esperado);
-    if (incorrectos.length > 0) {
-      return (
-        "La memoria de cálculo no corresponde a un cálculo de " + nombre + " — cada término debe multiplicar " +
-        "exactamente " + esperado + " dimensiones (obtuve " + incorrectos.join(", ") + "). Si es un círculo, " +
-        "triángulo, trapecio u otra forma no rectangular, marca la casilla \"forma irregular\"."
-      );
-    }
-  } else if (unidad === "ml") {
-    if (conteos.some((n) => n >= 3)) {
-      return "El desarrollo multiplica 3 o más dimensiones, lo que corresponde a un cálculo de área o volumen, no a una partida lineal (ml). Revisa la unidad o el desarrollo.";
-    }
-  }
-  return null;
+function contarDecimalesTexto(str) {
+  const s = normalizarSeparadores(str);
+  const partes = s.split(".");
+  return partes[1] ? partes[1].length : 0;
 }
 
-function estadoCubicacion(item) {
-  if (item.especialidad) {
-    return {
-      status: "excluida",
-      issues: [
-        "Partida de especialidad: excluida de la evaluación de cubicaciones según la pauta " +
-          "(instalaciones eléctricas/CCDD/CCTV, clima, ascensores, redes de gas). Se recomienda " +
-          "igual cubicarla para el presupuesto, pero no se exige ni se evalúa aquí.",
-      ],
-    };
-  }
-  const c = state.cubicaciones[item.id] || {};
-  const memoria = (c.memoria || "").trim();
-  const cantidadStr = (c.cantidad || "").trim();
+function estadoCubicacionManual(item, c) {
+  const memoria = (c.memoriaManual || "").trim();
+  const cantidadStr = (c.cantidadManual || "").trim();
   const respaldo = (c.respaldo || "").trim();
   if (!memoria && !cantidadStr && !respaldo) {
     return { status: "faltante", issues: ["Sin memoria de cálculo, cantidad ni respaldo registrados."] };
@@ -834,7 +782,7 @@ function estadoCubicacion(item) {
   const issues = [];
   if (!memoria) issues.push("Falta la memoria de cálculo (desarrollo geométrico).");
   if (!cantidadStr) issues.push("Falta la cantidad cubicada.");
-  if (!respaldo) issues.push("Falta el archivo de respaldo del cálculo (planilla, apunte escaneado o PDF).");
+  if (!respaldo) issues.push("Falta el archivo de respaldo del cálculo (referencia a la lámina del plano).");
 
   let valorFormula = null;
   let formulaValida = false;
@@ -847,8 +795,6 @@ function estadoCubicacion(item) {
     } else {
       valorFormula = res.value;
       formulaValida = true;
-      const problemaForma = validarFormaGeometrica(item, memoria, !!c.irregular);
-      if (problemaForma) issues.push(problemaForma);
     }
   }
 
@@ -865,18 +811,107 @@ function estadoCubicacion(item) {
     }
   }
 
-  if (cantidadStr && cantidadNum !== null) {
-    if (item.unidad === "un") {
-      if (!esEntero(cantidadNum)) issues.push('Unidad "un" no se fracciona: la cantidad debe ser un número entero.');
-    } else if (contarDecimalesTexto(cantidadStr) < 2) {
-      issues.push("Debe registrarse con al menos 2 decimales exactos (nunca redondear al entero superior).");
-    }
+  if (cantidadStr && cantidadNum !== null && contarDecimalesTexto(cantidadStr) < 2) {
+    issues.push("Debe registrarse con al menos 2 decimales exactos (nunca redondear al entero superior).");
   }
 
   return { status: issues.length === 0 ? "correcto" : "mal", issues };
 }
 
+// Cálculo estructurado por dimensiones (m2/m3/ml, sin "forma irregular"): un tramo por
+// pieza de la figura, sumados con signo +/-. La cantidad y la memoria se generan solas.
+function calcularTramo(item, tramo) {
+  const n = dimsPorUnidad(item.unidad);
+  const dims = [tramo.d1, tramo.d2, tramo.d3].slice(0, n);
+  if (dims.some((d) => !d || !String(d).trim())) return null;
+  const valores = dims.map(parseNumeroCL);
+  if (valores.some((v) => v === null || v <= 0)) return null;
+  const producto = valores.reduce((a, b) => a * b, 1);
+  return { valor: (tramo.signo === "-" ? -1 : 1) * producto, dims: valores };
+}
+function tramoTieneDatos(tramo) {
+  return [tramo.d1, tramo.d2, tramo.d3].some((d) => d && String(d).trim());
+}
+function memoriaDeTramos(item, tramos) {
+  const n = dimsPorUnidad(item.unidad);
+  const conDatos = tramos.filter(tramoTieneDatos);
+  if (conDatos.length === 0) return "";
+  return conDatos
+    .map((t, i) => {
+      const dims = [t.d1, t.d2, t.d3].slice(0, n).map((d) => (d && String(d).trim() ? String(d).trim() : "?"));
+      const prefijo = t.signo === "-" ? "- " : i > 0 ? "+ " : "";
+      return prefijo + "(" + dims.join(" x ") + ")";
+    })
+    .join(" ");
+}
+function calcularTotalTramos(item, tramos) {
+  const conDatos = tramos.filter(tramoTieneDatos);
+  let total = 0;
+  let incompleto = false;
+  conDatos.forEach((t) => {
+    const r = calcularTramo(item, t);
+    if (!r) incompleto = true;
+    else total += r.valor;
+  });
+  return { total, incompleto, tieneDatos: conDatos.length > 0 };
+}
+
+function estadoCubicacionTramos(item, c) {
+  const tramos = c.tramos && c.tramos.length ? c.tramos : [{}];
+  const respaldo = (c.respaldo || "").trim();
+  const { total, incompleto, tieneDatos } = calcularTotalTramos(item, tramos);
+
+  if (!tieneDatos && !respaldo) {
+    return { status: "faltante", issues: ["Sin dimensiones ni respaldo registrados."] };
+  }
+  const issues = [];
+  if (!tieneDatos) issues.push("Falta el desarrollo dimensional (completa al menos un tramo).");
+  if (!respaldo) issues.push("Falta el archivo de respaldo del cálculo (referencia a la lámina del plano).");
+  if (tieneDatos && incompleto) issues.push("Uno o más tramos tienen dimensiones incompletas o inválidas (deben ser mayores a 0).");
+  if (tieneDatos && !incompleto && total <= 0) issues.push("La cantidad total calculada debe ser mayor a 0 (revisa los signos de los tramos).");
+
+  return { status: issues.length === 0 ? "correcto" : "mal", issues, cantidadCalculada: tieneDatos && !incompleto ? total : null };
+}
+
+function estadoCubicacionEntero(item, c) {
+  const cantidadStr = (c.cantidadManual || "").trim();
+  const respaldo = (c.respaldo || "").trim();
+  if (!cantidadStr && !respaldo) return { status: "faltante", issues: ["Sin cantidad ni respaldo registrados."] };
+  const issues = [];
+  if (!cantidadStr) issues.push("Falta la cantidad.");
+  if (!respaldo) issues.push("Falta el archivo de respaldo del cálculo (referencia a la lámina del plano).");
+  if (cantidadStr) {
+    const n = parseNumeroCL(cantidadStr);
+    if (n === null) issues.push("La cantidad no es un número válido.");
+    else if (!esEntero(n)) issues.push('Unidad "un" no se fracciona: la cantidad debe ser un número entero.');
+    else if (n <= 0) issues.push("La cantidad debe ser mayor a 0.");
+  }
+  return { status: issues.length === 0 ? "correcto" : "mal", issues };
+}
+
+function estadoCubicacion(item) {
+  if (esTitulo(item)) return { status: "excluida", issues: ["Fila de título de sección."] };
+  if (item.especialidad) {
+    return {
+      status: "excluida",
+      issues: [
+        "Partida de especialidad: excluida de la evaluación de cubicaciones según la pauta " +
+          "(instalaciones eléctricas/CCDD/CCTV, clima, ascensores, redes de gas). Se recomienda " +
+          "igual cubicarla para el presupuesto, pero no se exige ni se evalúa aquí.",
+      ],
+    };
+  }
+  const c = getCub(item.id);
+  if (item.unidad === "un") return estadoCubicacionEntero(item, c);
+  const n = dimsPorUnidad(item.unidad);
+  if (n === 0) return estadoCubicacionManual(item, c);
+  if (c.irregular) return estadoCubicacionManual(item, c);
+  return estadoCubicacionTramos(item, c);
+}
+
+/* ======================= Motor de validación: EETT / Materiales / Cotizaciones ======================= */
 function estadoEett(item) {
+  if (esTitulo(item)) return { status: "excluida", issues: ["Fila de título de sección."] };
   const e = state.eett[item.id] || {};
   const detalle = (e.detalle || "").trim();
   const marcado = !!e.marcado;
@@ -908,6 +943,7 @@ function estadoMaterialLinea(m) {
 }
 
 function estadoMaterialesItem(item) {
+  if (esTitulo(item)) return { status: "excluida", issues: ["Fila de título de sección."] };
   const filas = materialesDeItem(item.id);
   if (filas.length === 0) {
     return { status: "faltante", issues: ["No se han registrado materiales/herramientas/máquinas/equipos para esta partida."] };
@@ -951,8 +987,9 @@ function estadoCotizacionLinea(m) {
 }
 
 function estadoCotizacionesItem(item) {
+  if (esTitulo(item)) return { status: "excluida", issues: ["Fila de título de sección."] };
   const filas = materialesDeItem(item.id);
-  if (filas.length === 0) return { status: "faltante", issues: ["Sin materiales asociados que cotizar (completa primero la hoja 04)."] };
+  if (filas.length === 0) return { status: "faltante", issues: ["Sin materiales asociados que cotizar (completa primero la hoja 01)."] };
   const estados = filas.map(estadoCotizacionLinea);
   if (estados.every((e) => e.status === "faltante")) return { status: "faltante", issues: ["Ninguna línea tiene cotizaciones registradas."] };
   if (estados.every((e) => e.status === "correcto")) return { status: "correcto", issues: [] };
@@ -960,10 +997,10 @@ function estadoCotizacionesItem(item) {
 }
 
 function resumenEntregable(estadoFn) {
-  // Las partidas con estado "excluida" (ej. especialidades en Cubicaciones) no cuentan
-  // en el total exigido, pero se informan aparte para que quede claro que se excluyeron
-  // a propósito y no por un olvido.
-  const todas = state.itemizado.map(estadoFn);
+  // Las partidas con estado "excluida" (títulos de sección, o especialidades en Cubicaciones)
+  // no cuentan en el total exigido, pero se informan aparte para que quede claro que se
+  // excluyeron a propósito y no por un olvido.
+  const todas = partidas().map(estadoFn);
   const excluidas = todas.filter((f) => f.status === "excluida").length;
   const filas = todas.filter((f) => f.status !== "excluida");
   const total = filas.length;
@@ -973,40 +1010,18 @@ function resumenEntregable(estadoFn) {
   return { total, realizadas: correctas + mal, correctas, mal, faltantes, excluidas };
 }
 
-/* ======================= Paste genérico (pegar desde Excel) ======================= */
-function attachGridPaste(tbody, onCell, afterPaste) {
-  tbody.addEventListener("paste", (e) => {
-    const target = e.target;
-    if (!target.matches("input,textarea")) return;
-    const text = (e.clipboardData || window.clipboardData).getData("text");
-    if (!text || (!text.includes("\t") && !text.includes("\n"))) return;
-    e.preventDefault();
-    const startRow = parseInt(target.dataset.row, 10);
-    const startCol = parseInt(target.dataset.col, 10);
-    const lineas = text.replace(/\r/g, "").split("\n");
-    while (lineas.length && lineas[lineas.length - 1] === "") lineas.pop();
-    lineas.forEach((linea, ri) => {
-      linea.split("\t").forEach((val, ci) => {
-        onCell(startRow + ri, startCol + ci, val);
-      });
-    });
-    if (afterPaste) afterPaste();
-  });
-}
-
 /* ======================= Render: pestañas ======================= */
 function activarTab(nombre) {
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === nombre));
   document.querySelectorAll("section.panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + nombre));
 }
-
 document.getElementById("tab-nav").addEventListener("click", (e) => {
   const btn = e.target.closest(".tab-btn");
   if (btn) activarTab(btn.dataset.tab);
 });
-
 function setBadge(id, n, esInformativo) {
   const el = document.getElementById(id);
+  if (!el) return; // algunos entregables (ej. Materiales) no tienen pestaña/badge propio
   el.textContent = n;
   el.dataset.empty = n === 0 && !esInformativo ? "1" : "0";
 }
@@ -1015,13 +1030,24 @@ function setBadge(id, n, esInformativo) {
 const DELIVERABLES = [
   { key: "cubicaciones", nombre: "02 · Cubicaciones", fn: estadoCubicacion },
   { key: "eett", nombre: "03 · Especificaciones Técnicas", fn: estadoEett },
-  { key: "materiales", nombre: "04 · Listado de Materiales", fn: estadoMaterialesItem },
-  { key: "cotizaciones", nombre: "05 · Cotizaciones", fn: estadoCotizacionesItem },
+  { key: "materiales", nombre: "01 · Listado de Materiales", fn: estadoMaterialesItem },
+  { key: "cotizaciones", nombre: "04 · Cotizaciones", fn: estadoCotizacionesItem },
 ];
+
+function pillHtml(status, issues) {
+  const cfg = {
+    correcto: ["ok", "✓ Correcta"],
+    mal: ["mal", "⚠ Revisar"],
+    faltante: ["falta", "— Faltante"],
+    excluida: ["excluida", "○ Excluida"],
+  }[status];
+  const title = issues && issues.length ? ' title="' + esc(issues.join(" ")) + '"' : "";
+  return '<span class="pill ' + cfg[0] + '"' + title + ">" + cfg[1] + "</span>";
+}
 
 function renderResumen() {
   const resumenes = DELIVERABLES.map((d) => Object.assign({}, d, resumenEntregable(d.fn)));
-  const totalPartidas = state.itemizado.length;
+  const totalPartidas = partidas().length;
 
   const totalCorrectas = resumenes.reduce((a, r) => a + r.correctas, 0);
   const totalMal = resumenes.reduce((a, r) => a + r.mal, 0);
@@ -1069,35 +1095,133 @@ function renderResumen() {
   });
 }
 
-/* ======================= Render: Itemizado ======================= */
+/* ======================= Paste genérico (pegar desde Excel) ======================= */
+function attachGridPaste(container, onCell, afterPaste) {
+  container.addEventListener("paste", (e) => {
+    const target = e.target;
+    if (!target.matches("input,textarea") || target.dataset.row === undefined) return;
+    const text = (e.clipboardData || window.clipboardData).getData("text");
+    if (!text || (!text.includes("\t") && !text.includes("\n"))) return;
+    e.preventDefault();
+    const startRow = parseInt(target.dataset.row, 10);
+    const startCol = parseInt(target.dataset.col, 10);
+    const lineas = text.replace(/\r/g, "").split("\n");
+    while (lineas.length && lineas[lineas.length - 1] === "") lineas.pop();
+    lineas.forEach((linea, ri) => {
+      linea.split("\t").forEach((val, ci) => {
+        onCell(startRow + ri, startCol + ci, val);
+      });
+    });
+    if (afterPaste) afterPaste();
+  });
+}
+
+/* ======================= Itemizado + Materiales (fusionados) ======================= */
 function addItemRow(valores) {
-  const it = Object.assign({ id: nuevoId(), item: "", descripcion: "", unidad: "", especialidad: false }, valores || {});
+  const it = Object.assign({ id: nuevoId(), tipo: "partida", item: "", descripcion: "", unidad: "", especialidad: false }, valores || {});
   state.itemizado.push(it);
   return it;
+}
+function addTituloRow(valores) {
+  return addItemRow(Object.assign({ tipo: "titulo", unidad: "", especialidad: false }, valores || {}));
 }
 function ensureItemRow(index) {
   while (state.itemizado.length <= index) addItemRow();
   return state.itemizado[index];
 }
-
-function renderItemizado() {
-  const tbody = document.querySelector("#tabla-itemizado tbody");
-  tbody.innerHTML = state.itemizado
-    .map(
-      (it, i) =>
-        "<tr>" +
-        '<td><input type="text" class="num" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="1.1" /></td>' +
-        '<td><input type="text" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="Descripción de la actividad" /></td>' +
-        '<td><input type="text" list="dl-unidades" data-row="' + i + '" data-col="2" data-field="unidad" value="' + esc(it.unidad) + '" placeholder="m2" /></td>' +
-        '<td style="text-align:center;padding:9px 0"><input type="checkbox" data-item="' + it.id + '" data-check="especialidad" title="Especialidad (eléctrico, clima, ascensores, gas): se excluye de la evaluación de Cubicaciones" ' + (it.especialidad ? "checked" : "") + " /></td>" +
-        '<td><button class="rowdel" data-del="' + it.id + '" title="Eliminar partida">✕</button></td>' +
-        "</tr>"
-    )
-    .join("");
-  document.getElementById("chip-itemizado").textContent = state.itemizado.length + " partida(s)";
+function addMaterial(itemId) {
+  const m = { id: nuevoId(), itemId, nombre: "", tipo: "", detalle: "", cantidad: "", unidad: "", unico: false };
+  state.materiales.push(m);
+  return m;
 }
 
-document.querySelector("#tabla-itemizado tbody").addEventListener("change", (e) => {
+function renderItemizado() {
+  const cont = document.getElementById("itemizado-list");
+  if (state.itemizado.length === 0) {
+    cont.innerHTML = '<p style="color:var(--ink-faint)">Aún no hay filas. Usa "+ Agregar partida" o "+ Agregar título de sección", o importa un Excel.</p>';
+    document.getElementById("chip-itemizado").textContent = "0 partida(s)";
+    return;
+  }
+  cont.innerHTML = state.itemizado
+    .map((it, i) => {
+      if (esTitulo(it)) {
+        return (
+          '<div class="item-group es-titulo" data-id="' + it.id + '">' +
+          '<div class="item-group-head">' +
+          '<input type="text" class="row-item-code" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="2.0" />' +
+          '<input type="text" class="row-item-desc" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="TÍTULO DE LA SECCIÓN (ej. OBRA GRUESA)" />' +
+          '<button class="rowdel" data-del="' + it.id + '" title="Eliminar título">✕</button>' +
+          "</div></div>"
+        );
+      }
+      const filasMat = materialesDeItem(it.id);
+      const estMat = estadoMaterialesItem(it);
+      const filasMatHtml = filasMat
+        .map(
+          (m) =>
+            "<tr>" +
+            '<td><input type="text" data-mid="' + m.id + '" data-field="nombre" value="' + esc(m.nombre) + '" placeholder="Nombre del material/herramienta" /></td>' +
+            '<td><input type="text" list="dl-tipos" data-mid="' + m.id + '" data-field="tipo" value="' + esc(m.tipo) + '" placeholder="Material" /></td>' +
+            '<td><input type="text" data-mid="' + m.id + '" data-field="detalle" value="' + esc(m.detalle) + '" placeholder="Calidad / marca / modelo / formato / color" /></td>' +
+            '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="cantidad" value="' + esc(m.cantidad) + '" placeholder="0" /></td>' +
+            '<td><input type="text" list="dl-unidades" data-mid="' + m.id + '" data-field="unidad" value="' + esc(m.unidad) + '" placeholder="un" /></td>' +
+            '<td><button class="rowdel" data-delmat="' + m.id + '" title="Eliminar línea">✕</button></td>' +
+            "</tr>"
+        )
+        .join("");
+      return (
+        '<div class="item-group" data-id="' + it.id + '">' +
+        '<div class="item-group-head">' +
+        '<input type="text" class="row-item-code" data-row="' + i + '" data-col="0" data-field="item" value="' + esc(it.item) + '" placeholder="2.1" />' +
+        '<input type="text" class="row-item-desc" data-row="' + i + '" data-col="1" data-field="descripcion" value="' + esc(it.descripcion) + '" placeholder="Descripción de la actividad" />' +
+        '<input type="text" list="dl-unidades" class="row-item-unidad" data-row="' + i + '" data-col="2" data-field="unidad" value="' + esc(it.unidad) + '" placeholder="m2" />' +
+        '<label class="chk"><input type="checkbox" data-item="' + it.id + '" data-check="especialidad" ' + (it.especialidad ? "checked" : "") + ' title="Instalaciones eléctricas/CCDD/CCTV, clima, ascensores, gas"/> Especialidad</label>' +
+        '<button class="rowdel" data-del="' + it.id + '" title="Eliminar partida">✕</button>' +
+        "</div>" +
+        '<div class="item-group-foot">' +
+        '<div class="field-row" style="justify-content:space-between;margin-bottom:6px">' +
+        '<span class="count-chip">Materiales / herramientas / máquinas / equipos</span>' + pillHtml(estMat.status, estMat.issues) +
+        "</div>" +
+        (filasMat.length
+          ? '<div class="grid-wrap" style="border:none;border-radius:0"><table class="grid"><thead><tr><th style="width:22%">Nombre</th><th style="width:14%">Tipo</th><th>Detalle</th><th style="width:10%">Cant.</th><th style="width:9%">Unidad</th><th style="width:32px"></th></tr></thead><tbody>' + filasMatHtml + "</tbody></table></div>"
+          : "") +
+        '<button class="small" style="margin-top:8px" data-addmat="' + it.id + '">+ Agregar material/herramienta</button>' +
+        "</div></div>"
+      );
+    })
+    .join("");
+  document.getElementById("chip-itemizado").textContent = partidas().length + " partida(s) · " + state.itemizado.filter(esTitulo).length + " título(s) de sección";
+}
+
+const contItemizado = document.getElementById("itemizado-list");
+
+contItemizado.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.matches("[data-row][data-field]")) {
+    const row = parseInt(t.dataset.row, 10);
+    const it = state.itemizado[row];
+    if (!it) return;
+    it[t.dataset.field] = t.value;
+    programarGuardado();
+    document.getElementById("chip-itemizado").textContent = partidas().length + " partida(s) · " + state.itemizado.filter(esTitulo).length + " título(s) de sección";
+    renderResumen();
+    renderCubicaciones();
+    renderEett();
+    renderCotizaciones();
+    return;
+  }
+  if (t.matches("[data-mid][data-field]")) {
+    const m = state.materiales.find((x) => x.id === t.dataset.mid);
+    if (!m) return;
+    m[t.dataset.field] = t.value;
+    programarGuardado();
+    renderItemizado();
+    renderCotizaciones();
+    renderResumen();
+  }
+});
+
+contItemizado.addEventListener("change", (e) => {
   const t = e.target;
   if (!t.matches('input[type="checkbox"]')) return;
   const it = state.itemizado.find((x) => x.id === t.dataset.item);
@@ -1105,36 +1229,44 @@ document.querySelector("#tabla-itemizado tbody").addEventListener("change", (e) 
   it.especialidad = t.checked;
   programarGuardado();
   renderResumen();
-  renderDependientes();
+  renderCubicaciones();
 });
 
-document.querySelector("#tabla-itemizado tbody").addEventListener("input", (e) => {
-  const t = e.target;
-  if (!t.matches("input")) return;
-  const row = parseInt(t.dataset.row, 10);
-  const it = state.itemizado[row];
-  if (!it) return;
-  it[t.dataset.field] = t.value;
-  document.getElementById("chip-itemizado").textContent = state.itemizado.length + " partida(s)";
-  programarGuardado();
-  renderResumen();
-  renderDependientes();
-});
-
-document.querySelector("#tabla-itemizado tbody").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-del]");
-  if (!btn) return;
-  const id = btn.dataset.del;
-  state.itemizado = state.itemizado.filter((it) => it.id !== id);
-  delete state.cubicaciones[id];
-  delete state.eett[id];
-  state.materiales = state.materiales.filter((m) => m.itemId !== id);
-  programarGuardado();
-  renderTodo();
+contItemizado.addEventListener("click", (e) => {
+  const del = e.target.closest("[data-del]");
+  if (del) {
+    const id = del.dataset.del;
+    state.itemizado = state.itemizado.filter((it) => it.id !== id);
+    delete state.cubicaciones[id];
+    delete state.eett[id];
+    state.materiales.filter((m) => m.itemId === id).forEach((m) => delete state.cotizaciones[m.id]);
+    state.materiales = state.materiales.filter((m) => m.itemId !== id);
+    programarGuardado();
+    renderTodo();
+    return;
+  }
+  const addBtn = e.target.closest("[data-addmat]");
+  if (addBtn) {
+    addMaterial(addBtn.dataset.addmat);
+    programarGuardado();
+    renderItemizado();
+    renderCotizaciones();
+    renderResumen();
+    return;
+  }
+  const delBtn = e.target.closest("[data-delmat]");
+  if (delBtn) {
+    state.materiales = state.materiales.filter((m) => m.id !== delBtn.dataset.delmat);
+    delete state.cotizaciones[delBtn.dataset.delmat];
+    programarGuardado();
+    renderItemizado();
+    renderCotizaciones();
+    renderResumen();
+  }
 });
 
 attachGridPaste(
-  document.querySelector("#tabla-itemizado tbody"),
+  contItemizado,
   (r, c, val) => {
     const it = ensureItemRow(r);
     const campos = ["item", "descripcion", "unidad"];
@@ -1148,6 +1280,11 @@ attachGridPaste(
 
 document.getElementById("btn-add-item").addEventListener("click", () => {
   addItemRow();
+  programarGuardado();
+  renderTodo();
+});
+document.getElementById("btn-add-titulo").addEventListener("click", () => {
+  addTituloRow();
   programarGuardado();
   renderTodo();
 });
@@ -1201,7 +1338,7 @@ async function inflateRaw(bytes) {
 
 async function zipEscribir(archivos) {
   const encoder = new TextEncoder();
-  const fechaDos = (1 << 5) | 1; // fecha DOS fija (1-ene); Excel no usa este dato para nada relevante aquí
+  const fechaDos = (1 << 5) | 1;
   const localBlocks = [];
   const centralBlocks = [];
   let offset = 0;
@@ -1345,7 +1482,6 @@ function generarHojaXml(filas) {
   );
 }
 
-// hojas: [{ nombre, filas: [[...encabezados], [...fila1], ...] }] -> Blob de un .xlsx real
 async function generarXlsx(hojas) {
   const encoder = new TextEncoder();
   const nombresSeguros = hojas.map((h) => (h.nombre.replace(/[[\]*?/\\:]/g, "").slice(0, 31) || "Hoja"));
@@ -1386,9 +1522,6 @@ async function generarXlsx(hojas) {
   return new Blob([zipBytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 }
 
-// arrayBuffer de un .xlsx -> { hojas: {nombre: filas[][]}, orden: [nombre,...] }
-// Soporta tanto los archivos que genera esta misma página (celdas de texto en línea)
-// como archivos guardados por Excel/LibreOffice/Sheets de verdad (que usan sharedStrings).
 async function leerXlsx(arrayBuffer) {
   const archivos = await zipLeer(arrayBuffer);
   const decoder = new TextDecoder("utf-8");
@@ -1475,8 +1608,6 @@ function descargarBlob(nombre, blob) {
 }
 
 /* ======================= Import/Export Excel (.xlsx) emparejado por ITEM ======================= */
-// A diferencia del pegado desde Excel (posicional), estas importaciones emparejan
-// cada fila con su partida por el código de ITEM, sin importar el orden del archivo.
 function normItemCode(s) {
   return String(s || "").trim().toLowerCase();
 }
@@ -1484,22 +1615,6 @@ function buscarItemPorCodigo(codigo) {
   const norm = normItemCode(codigo);
   if (!norm) return null;
   return state.itemizado.find((it) => normItemCode(it.item) === norm) || null;
-}
-
-function importarFilasPorItem(filas, onFila) {
-  let importadas = 0;
-  const noEncontrados = [];
-  filas.forEach((f, i) => {
-    const itemCodigo = f[0];
-    const resto = f.slice(1);
-    if (i === 0 && normItemCode(itemCodigo) === "item") return; // salta fila de encabezado
-    if (!itemCodigo && resto.every((c) => !c)) return; // fila vacía
-    const it = buscarItemPorCodigo(itemCodigo);
-    if (!it) { noEncontrados.push(itemCodigo || "(vacío)"); return; }
-    onFila(it, resto);
-    importadas++;
-  });
-  return { importadas, noEncontrados };
 }
 
 function mostrarAviso(mensaje, tono) {
@@ -1530,39 +1645,90 @@ function reportarImportacion(nombreHoja, resultado) {
   }
 }
 
+function importarFilasPorItem(filas, onFila) {
+  let importadas = 0;
+  const noEncontrados = [];
+  filas.forEach((f, i) => {
+    const itemCodigo = f[0];
+    const resto = f.slice(1);
+    if (i === 0 && normItemCode(itemCodigo) === "item") return;
+    if (!itemCodigo && resto.every((c) => !c)) return;
+    const it = buscarItemPorCodigo(itemCodigo);
+    if (!it) { noEncontrados.push(itemCodigo || "(vacío)"); return; }
+    onFila(it, resto);
+    importadas++;
+  });
+  return { importadas, noEncontrados };
+}
+
 async function leerPrimeraHoja(file, nombrePreferido) {
   const buffer = await file.arrayBuffer();
   const resultado = await leerXlsx(buffer);
   return elegirHojaImportada(resultado, nombrePreferido);
 }
 
-async function exportarXlsxPorItem(nombreArchivo, nombreHoja, encabezados, filaFn) {
-  const filas = [encabezados].concat(state.itemizado.map((it) => [it.item].concat(filaFn(it))));
-  const blob = await generarXlsx([{ nombre: nombreHoja, filas }]);
-  descargarBlob(nombreArchivo, blob);
+/* ---- Itemizado + Materiales (una sola hoja, formato largo: TITULO/PARTIDA/MATERIAL) ---- */
+function filasItemizadoCompleto() {
+  const filas = [["TIPO_FILA", "ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD", "MATERIAL_NOMBRE", "MATERIAL_TIPO", "MATERIAL_DETALLE", "MATERIAL_CANTIDAD", "MATERIAL_UNIDAD"]];
+  state.itemizado.forEach((it) => {
+    if (esTitulo(it)) {
+      filas.push(["TITULO", it.item, it.descripcion, "", "", "", "", "", "", ""]);
+      return;
+    }
+    filas.push(["PARTIDA", it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO", "", "", "", "", ""]);
+    materialesDeItem(it.id).forEach((m) => {
+      filas.push(["MATERIAL", it.item, "", "", "", m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad]);
+    });
+  });
+  return filas;
 }
 
-/* ---- Itemizado ---- */
+document.getElementById("btn-export-xlsx-itemizado").addEventListener("click", async () => {
+  const blob = await generarXlsx([{ nombre: "Itemizado", filas: filasItemizadoCompleto() }]);
+  descargarBlob("itemizado_y_materiales.xlsx", blob);
+});
+
 document.getElementById("btn-import-xlsx-itemizado").addEventListener("click", () => document.getElementById("file-xlsx-itemizado").click());
 document.getElementById("file-xlsx-itemizado").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   try {
     const filas = await leerPrimeraHoja(file, "itemizado");
-    let agregadas = 0;
+    let titulos = 0, partidasN = 0, materialesN = 0;
+    const noEncontrados = [];
+    let ultimaPartida = null;
     filas.forEach((f, i) => {
-      const [item, descripcion, unidad, especialidad] = f;
-      if (i === 0 && normItemCode(item) === "item") return;
-      if (!item && !descripcion) return;
-      addItemRow({
-        item: item || "",
-        descripcion: descripcion || "",
-        unidad: unidad || "",
-        especialidad: /^(si|sí|1|true|x)$/i.test((especialidad || "").trim()),
-      });
-      agregadas++;
+      const [tipoFila, itemCodigo, descripcion, unidad, especialidad, matNombre, matTipo, matDetalle, matCantidad, matUnidad] = f;
+      if (i === 0 && normItemCode(tipoFila) === "tipo_fila") return;
+      const tipo = (tipoFila || "").trim().toUpperCase();
+      if (tipo === "TITULO") {
+        addTituloRow({ item: itemCodigo || "", descripcion: descripcion || "" });
+        titulos++;
+      } else if (tipo === "PARTIDA") {
+        ultimaPartida = addItemRow({
+          item: itemCodigo || "",
+          descripcion: descripcion || "",
+          unidad: unidad || "",
+          especialidad: /^(si|sí|1|true|x)$/i.test((especialidad || "").trim()),
+        });
+        partidasN++;
+      } else if (tipo === "MATERIAL") {
+        const it = buscarItemPorCodigo(itemCodigo) || ultimaPartida;
+        if (!it) { noEncontrados.push(itemCodigo || "(vacío)"); return; }
+        const m = addMaterial(it.id);
+        m.nombre = matNombre || "";
+        m.tipo = matTipo || "";
+        m.detalle = matDetalle || "";
+        m.cantidad = matCantidad || "";
+        m.unidad = matUnidad || "";
+        materialesN++;
+      }
     });
-    mostrarAviso("Itemizado: se agregaron " + agregadas + " partida(s) desde el Excel.", "ok");
+    let msg = "Itemizado: " + titulos + " título(s), " + partidasN + " partida(s) y " + materialesN + " línea(s) de materiales importadas.";
+    if (noEncontrados.length) {
+      msg += " " + noEncontrados.length + " línea(s) de materiales sin partida asociada: " + noEncontrados.slice(0, 6).join(", ") + ".";
+    }
+    mostrarAviso(msg, noEncontrados.length ? "warn" : "ok");
     programarGuardado();
     renderTodo();
   } catch (err) {
@@ -1570,37 +1736,65 @@ document.getElementById("file-xlsx-itemizado").addEventListener("change", async 
   }
   e.target.value = "";
 });
-document.getElementById("btn-export-xlsx-itemizado").addEventListener("click", async () => {
-  const filas = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"]].concat(
-    state.itemizado.map((it) => [it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO"])
-  );
-  const blob = await generarXlsx([{ nombre: "Itemizado", filas }]);
-  descargarBlob("itemizado.xlsx", blob);
+
+/* ---- Cubicaciones (una sola hoja, formato largo: una fila por tramo, o una fila manual) ---- */
+function getCub(itemId) {
+  if (!state.cubicaciones[itemId]) {
+    state.cubicaciones[itemId] = { respaldo: "", irregular: false, memoriaManual: "", cantidadManual: "", tramos: [{ id: nuevoId(), d1: "", d2: "", d3: "", signo: "+" }] };
+  }
+  if (!state.cubicaciones[itemId].tramos || state.cubicaciones[itemId].tramos.length === 0) {
+    state.cubicaciones[itemId].tramos = [{ id: nuevoId(), d1: "", d2: "", d3: "", signo: "+" }];
+  }
+  return state.cubicaciones[itemId];
+}
+
+function filasCubicacionesCompleto() {
+  const filas = [["ITEM", "RESPALDO", "FORMA_IRREGULAR", "DIM1", "DIM2", "DIM3", "SIGNO", "MEMORIA_MANUAL", "CANTIDAD_MANUAL"]];
+  partidas().forEach((it) => {
+    const c = getCub(it.id);
+    const irregular = c.irregular ? "SI" : "NO";
+    if (it.unidad === "un" || dimsPorUnidad(it.unidad) === 0 || c.irregular) {
+      filas.push([it.item, c.respaldo, irregular, "", "", "", "", c.memoriaManual, c.cantidadManual]);
+      return;
+    }
+    const conDatos = c.tramos.filter(tramoTieneDatos);
+    if (conDatos.length === 0) {
+      filas.push([it.item, c.respaldo, irregular, "", "", "", "+", "", ""]);
+    } else {
+      conDatos.forEach((t) => filas.push([it.item, c.respaldo, irregular, t.d1 || "", t.d2 || "", t.d3 || "", t.signo || "+", "", ""]));
+    }
+  });
+  return filas;
+}
+
+document.getElementById("btn-plantilla-xlsx-cubicaciones").addEventListener("click", async () => {
+  const blob = await generarXlsx([{ nombre: "Cubicaciones", filas: filasCubicacionesCompleto() }]);
+  descargarBlob("cubicaciones.xlsx", blob);
 });
 
-/* ---- Cubicaciones ---- */
-function leerCub(itemId) {
-  return state.cubicaciones[itemId] || { memoria: "", cantidad: "", respaldo: "", irregular: false };
-}
-document.getElementById("btn-plantilla-xlsx-cubicaciones").addEventListener("click", () => {
-  exportarXlsxPorItem("cubicaciones.xlsx", "Cubicaciones", ["ITEM", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR"], (it) => {
-    const c = leerCub(it.id);
-    return [c.memoria, c.cantidad, c.respaldo, c.irregular ? "SI" : "NO"];
-  });
-});
 document.getElementById("btn-import-xlsx-cubicaciones").addEventListener("click", () => document.getElementById("file-xlsx-cubicaciones").click());
 document.getElementById("file-xlsx-cubicaciones").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   try {
     const filas = await leerPrimeraHoja(file, "cubicaciones");
+    const vistos = new Set();
     const resultado = importarFilasPorItem(filas, (it, resto) => {
-      const [memoria, cantidad, respaldo, irregular] = resto;
-      const rec = getCub(it.id);
-      rec.memoria = memoria || "";
-      rec.cantidad = cantidad || "";
-      rec.respaldo = respaldo || "";
-      rec.irregular = /^(si|sí|1|true|x)$/i.test((irregular || "").trim());
+      const [respaldo, irregular, d1, d2, d3, signo, memoriaManual, cantidadManual] = resto;
+      const c = getCub(it.id);
+      if (!vistos.has(it.id)) {
+        c.respaldo = respaldo || "";
+        c.irregular = /^(si|sí|1|true|x)$/i.test((irregular || "").trim());
+        c.tramos = [];
+        vistos.add(it.id);
+      }
+      if (memoriaManual || cantidadManual) {
+        c.memoriaManual = memoriaManual || c.memoriaManual || "";
+        c.cantidadManual = cantidadManual || c.cantidadManual || "";
+      }
+      if (d1 || d2 || d3) {
+        c.tramos.push({ id: nuevoId(), d1: d1 || "", d2: d2 || "", d3: d3 || "", signo: signo === "-" ? "-" : "+" });
+      }
     });
     reportarImportacion("Cubicaciones", resultado);
     programarGuardado();
@@ -1615,11 +1809,10 @@ document.getElementById("file-xlsx-cubicaciones").addEventListener("change", asy
 function leerEett(itemId) {
   return state.eett[itemId] || { detalle: "", marcado: false };
 }
-document.getElementById("btn-plantilla-xlsx-eett").addEventListener("click", () => {
-  exportarXlsxPorItem("especificaciones-tecnicas.xlsx", "EETT", ["ITEM", "DETALLE", "MARCADO"], (it) => {
-    const e = leerEett(it.id);
-    return [e.detalle, e.marcado ? "SI" : "NO"];
-  });
+document.getElementById("btn-plantilla-xlsx-eett").addEventListener("click", async () => {
+  const filas = [["ITEM", "DETALLE", "MARCADO"]].concat(partidas().map((it) => { const e = leerEett(it.id); return [it.item, e.detalle, e.marcado ? "SI" : "NO"]; }));
+  const blob = await generarXlsx([{ nombre: "EETT", filas }]);
+  descargarBlob("especificaciones-tecnicas.xlsx", blob);
 });
 document.getElementById("btn-import-xlsx-eett").addEventListener("click", () => document.getElementById("file-xlsx-eett").click());
 document.getElementById("file-xlsx-eett").addEventListener("change", async (e) => {
@@ -1642,80 +1835,94 @@ document.getElementById("file-xlsx-eett").addEventListener("change", async (e) =
   e.target.value = "";
 });
 
-/* ---- Materiales (varias líneas por ITEM: la exportación/importación no es 1 fila por partida) ---- */
-document.getElementById("btn-plantilla-xlsx-materiales").addEventListener("click", async () => {
-  const filas = [["ITEM", "NOMBRE", "TIPO", "DETALLE", "CANTIDAD", "UNIDAD"]].concat(
-    state.materiales.map((m) => {
-      const it = state.itemizado.find((x) => x.id === m.itemId);
-      return [it ? it.item : "", m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad];
-    })
-  );
-  const blob = await generarXlsx([{ nombre: "Materiales", filas }]);
-  descargarBlob("materiales.xlsx", blob);
-});
-document.getElementById("btn-import-xlsx-materiales").addEventListener("click", () => document.getElementById("file-xlsx-materiales").click());
-document.getElementById("file-xlsx-materiales").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  try {
-    const filas = await leerPrimeraHoja(file, "materiales");
-    const resultado = importarFilasPorItem(filas, (it, resto) => {
-      const [nombre, tipo, detalle, cantidad, unidad] = resto;
-      const m = addMaterial(it.id);
-      m.nombre = nombre || "";
-      m.tipo = tipo || "";
-      m.detalle = detalle || "";
-      m.cantidad = cantidad || "";
-      m.unidad = unidad || "";
-    });
-    reportarImportacion("Materiales", resultado);
-    programarGuardado();
-    renderTodo();
-  } catch (err) {
-    mostrarAviso("No se pudo leer el archivo Excel: " + err.message, "warn");
-  }
-  e.target.value = "";
-});
-
 /* ======================= Render: Cubicaciones ======================= */
-function getCub(itemId) {
-  if (!state.cubicaciones[itemId]) state.cubicaciones[itemId] = { memoria: "", cantidad: "", respaldo: "", irregular: false };
-  return state.cubicaciones[itemId];
-}
-
-function pillHtml(status, issues) {
-  const cfg = {
-    correcto: ["ok", "✓ Correcta"],
-    mal: ["mal", "⚠ Revisar"],
-    faltante: ["falta", "— Faltante"],
-    excluida: ["excluida", "○ Excluida"],
-  }[status];
-  const title = issues && issues.length ? ' title="' + esc(issues.join(" ")) + '"' : "";
-  return '<span class="pill ' + cfg[0] + '"' + title + ">" + cfg[1] + "</span>";
+function textoUnidad(unidad) {
+  return { m2: "m²", m3: "m³" }[unidad] || unidad;
 }
 
 function renderCubicaciones() {
-  const tbody = document.querySelector("#tabla-cubicaciones tbody");
-  if (state.itemizado.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</td></tr>';
+  const cont = document.getElementById("cubicaciones-list");
+  const items = partidas();
+  if (items.length === 0) {
+    cont.innerHTML = '<p style="color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</p>';
     document.getElementById("chip-cubicaciones").textContent = "";
     return;
   }
-  tbody.innerHTML = state.itemizado
-    .map((it, i) => {
+  cont.innerHTML = items
+    .map((it) => {
       const c = getCub(it.id);
       const est = estadoCubicacion(it);
+      const n = dimsPorUnidad(it.unidad);
+      const esEspecialidad = !!it.especialidad;
+
+      let cuerpo;
+      if (esEspecialidad) {
+        cuerpo = '<div class="item-group-body"><span class="count-chip">Partida de especialidad: no se exige cubicación aquí (ver pestaña 01).</span></div>';
+      } else if (it.unidad === "un") {
+        cuerpo =
+          '<div class="item-group-body">' +
+          '<div class="field-row"><label>Cantidad (entero) <input type="text" class="num" style="width:110px" data-item="' + it.id + '" data-field="cantidadManual" value="' + esc(c.cantidadManual) + '" placeholder="0" /></label></div>' +
+          campoRespaldo(it, c) +
+          "</div>";
+      } else if (n === 0) {
+        cuerpo =
+          '<div class="item-group-body">' +
+          '<div class="field-row" style="align-items:flex-start"><label style="flex:1">Memoria de cálculo (fórmula libre)<br/><textarea data-item="' + it.id + '" data-field="memoriaManual" rows="2" style="width:100%" placeholder="ej. 120 x 3,5 (peso por metro)">' + esc(c.memoriaManual) + "</textarea></label></div>" +
+          '<div class="field-row"><label>Cantidad <input type="text" class="num" style="width:110px" data-item="' + it.id + '" data-field="cantidadManual" value="' + esc(c.cantidadManual) + '" placeholder="0,00" /></label></div>' +
+          campoRespaldo(it, c) +
+          "</div>";
+      } else if (c.irregular) {
+        cuerpo =
+          '<div class="item-group-body">' +
+          '<div class="count-chip">Forma irregular: escribe la fórmula libremente (ej. círculo <code>3,1416 x 2 x 2</code>).</div>' +
+          '<div class="field-row" style="align-items:flex-start"><label style="flex:1">Memoria de cálculo<br/><textarea data-item="' + it.id + '" data-field="memoriaManual" rows="2" style="width:100%" placeholder="3,1416 x 1,5 x 1,5">' + esc(c.memoriaManual) + "</textarea></label></div>" +
+          '<div class="field-row"><label>Cantidad <input type="text" class="num" style="width:110px" data-item="' + it.id + '" data-field="cantidadManual" value="' + esc(c.cantidadManual) + '" placeholder="0,00" /></label></div>' +
+          campoRespaldo(it, c) +
+          campoIrregular(it, c) +
+          "</div>";
+      } else {
+        const etiquetas = ETIQUETAS_DIM[n];
+        const totalInfo = calcularTotalTramos(it, c.tramos);
+        const memoria = memoriaDeTramos(it, c.tramos);
+        cuerpo =
+          '<div class="item-group-body">' +
+          '<table class="tramos-table"><thead><tr><th style="width:40px"></th>' +
+          etiquetas.map((et) => "<th>" + et + " (" + textoUnidad(it.unidad).replace(/[²³]/, "") + (n === 1 ? "l" : "") + ")</th>").join("") +
+          '<th style="width:32px"></th></tr></thead><tbody>' +
+          c.tramos
+            .map(
+              (t, ti) =>
+                "<tr>" +
+                '<td><select data-tramo="' + t.id + '" data-item="' + it.id + '" data-field="signo">' +
+                '<option value="+"' + (t.signo !== "-" ? " selected" : "") + ">+</option>" +
+                '<option value="-"' + (t.signo === "-" ? " selected" : "") + ">−</option>" +
+                "</select></td>" +
+                [0, 1, 2]
+                  .slice(0, n)
+                  .map((di) => '<td><input type="text" data-tramo="' + t.id + '" data-item="' + it.id + '" data-field="d' + (di + 1) + '" value="' + esc(t["d" + (di + 1)]) + '" placeholder="0,00" /></td>')
+                  .join("") +
+                '<td><button class="rowdel" data-deltramo="' + t.id + '" data-item="' + it.id + '" title="Eliminar tramo" ' + (c.tramos.length <= 1 ? "disabled" : "") + ">✕</button></td>" +
+                "</tr>"
+            )
+            .join("") +
+          "</tbody></table>" +
+          '<button class="small" data-addtramo="' + it.id + '">+ Agregar tramo</button>' +
+          '<div class="memoria-preview">Memoria de cálculo: ' + (memoria ? esc(memoria) : "<em>(completa las dimensiones)</em>") + "</div>" +
+          '<div class="cantidad-total">Cantidad total: ' + (totalInfo.tieneDatos && !totalInfo.incompleto ? formatNum(totalInfo.total) + " " + esc(textoUnidad(it.unidad)) : "—") + "</div>" +
+          campoRespaldo(it, c) +
+          campoIrregular(it, c) +
+          "</div>";
+      }
+
       return (
-        '<tr data-status="' + est.status + '">' +
-        '<td class="readonly col-status">' + esc(it.item) + "</td>" +
-        '<td class="readonly">' + esc(it.descripcion) + "</td>" +
-        '<td class="readonly">' + esc(it.unidad) + "</td>" +
-        '<td><textarea rows="1" data-row="' + i + '" data-col="0" data-item="' + it.id + '" data-field="memoria" placeholder="12,35 x 8,20 x 0,10">' + esc(c.memoria) + "</textarea></td>" +
-        '<td><input type="text" class="num" data-row="' + i + '" data-col="1" data-item="' + it.id + '" data-field="cantidad" value="' + esc(c.cantidad) + '" placeholder="0,00" /></td>' +
-        '<td><input type="text" data-row="' + i + '" data-col="2" data-item="' + it.id + '" data-field="respaldo" value="' + esc(c.respaldo) + '" placeholder="Lámina A-03 · Respaldos_Cubicacion.pdf p.' + esc(it.item || "X") + '" /></td>' +
-        '<td style="text-align:center;padding:9px 0"><input type="checkbox" data-item="' + it.id + '" data-check="irregular" title="Círculo / triángulo / trapecio u otra forma no rectangular" ' + (c.irregular ? "checked" : "") + " /></td>" +
-        '<td class="pill-cell">' + pillHtml(est.status, est.issues) + "</td>" +
-        "</tr>"
+        '<div class="item-group" data-id="' + it.id + '">' +
+        '<div class="item-group-head">' +
+        '<span class="item-code">' + esc(it.item || "—") + "</span>" +
+        '<span class="item-desc">' + esc(it.descripcion || "(sin descripción)") + " · " + esc(it.unidad || "sin unidad") + "</span>" +
+        pillHtml(est.status, est.issues) +
+        "</div>" +
+        cuerpo +
+        "</div>"
       );
     })
     .join("");
@@ -1723,40 +1930,65 @@ function renderCubicaciones() {
   document.getElementById("chip-cubicaciones").textContent = resumen.correctas + " correctas · " + resumen.mal + " con errores · " + resumen.faltantes + " faltantes";
 }
 
-document.querySelector("#tabla-cubicaciones tbody").addEventListener("input", (e) => {
-  const t = e.target;
-  if (!t.matches("input,textarea")) return;
-  const rec = getCub(t.dataset.item);
-  rec[t.dataset.field] = t.value;
-  programarGuardado();
-  renderCubicaciones();
-  renderResumen();
-});
-document.querySelector("#tabla-cubicaciones tbody").addEventListener("change", (e) => {
-  const t = e.target;
-  if (!t.matches('input[type="checkbox"]')) return;
-  getCub(t.dataset.item).irregular = t.checked;
-  programarGuardado();
-  renderCubicaciones();
-  renderResumen();
-});
+function campoRespaldo(it, c) {
+  return '<div class="field-row"><label style="flex:1">Archivo de respaldo (lámina/plano) <input type="text" style="width:100%" data-item="' + it.id + '" data-field="respaldo" value="' + esc(c.respaldo) + '" placeholder="Lámina A-03 · Respaldos_Cubicacion.pdf p.' + esc(it.item || "X") + '" /></label></div>';
+}
+function campoIrregular(it, c) {
+  if (it.unidad !== "m2" && it.unidad !== "m3") return "";
+  return '<label class="chk"><input type="checkbox" data-item="' + it.id + '" data-check="irregular" ' + (c.irregular ? "checked" : "") + ' /> Forma irregular (círculo/triángulo/trapecio): usar fórmula manual</label>';
+}
 
-attachGridPaste(
-  document.querySelector("#tabla-cubicaciones tbody"),
-  (r, c, val) => {
-    if (r >= state.itemizado.length) return;
-    const it = state.itemizado[r];
-    const rec = getCub(it.id);
-    if (c === 0) rec.memoria = val;
-    else if (c === 1) rec.cantidad = val;
-    else if (c === 2) rec.respaldo = val;
-  },
-  () => {
+const contCubicaciones = document.getElementById("cubicaciones-list");
+contCubicaciones.addEventListener("input", (e) => {
+  const t = e.target;
+  if (!t.matches("input,textarea") || !t.dataset.item) return;
+  const c = getCub(t.dataset.item);
+  if (t.dataset.tramo) {
+    const tramo = c.tramos.find((x) => x.id === t.dataset.tramo);
+    if (tramo) tramo[t.dataset.field] = t.value;
+  } else {
+    c[t.dataset.field] = t.value;
+  }
+  programarGuardado();
+  renderCubicaciones();
+  renderResumen();
+});
+contCubicaciones.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.matches('select[data-tramo]')) {
+    const c = getCub(t.dataset.item);
+    const tramo = c.tramos.find((x) => x.id === t.dataset.tramo);
+    if (tramo) tramo.signo = t.value;
+    programarGuardado();
+    renderCubicaciones();
+    renderResumen();
+    return;
+  }
+  if (t.matches('input[type="checkbox"][data-check="irregular"]')) {
+    getCub(t.dataset.item).irregular = t.checked;
     programarGuardado();
     renderCubicaciones();
     renderResumen();
   }
-);
+});
+contCubicaciones.addEventListener("click", (e) => {
+  const addT = e.target.closest("[data-addtramo]");
+  if (addT) {
+    getCub(addT.dataset.addtramo).tramos.push({ id: nuevoId(), d1: "", d2: "", d3: "", signo: "+" });
+    programarGuardado();
+    renderCubicaciones();
+    renderResumen();
+    return;
+  }
+  const delT = e.target.closest("[data-deltramo]");
+  if (delT) {
+    const c = getCub(delT.dataset.item);
+    if (c.tramos.length > 1) c.tramos = c.tramos.filter((x) => x.id !== delT.dataset.deltramo);
+    programarGuardado();
+    renderCubicaciones();
+    renderResumen();
+  }
+});
 
 /* ======================= Render: EETT ======================= */
 function getEett(itemId) {
@@ -1766,12 +1998,13 @@ function getEett(itemId) {
 
 function renderEett() {
   const tbody = document.querySelector("#tabla-eett tbody");
-  if (state.itemizado.length === 0) {
+  const items = partidas();
+  if (items.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</td></tr>';
     document.getElementById("chip-eett").textContent = "";
     return;
   }
-  tbody.innerHTML = state.itemizado
+  tbody.innerHTML = items
     .map((it, i) => {
       const e = getEett(it.id);
       const est = estadoEett(it);
@@ -1809,8 +2042,9 @@ document.querySelector("#tabla-eett tbody").addEventListener("change", (e) => {
 attachGridPaste(
   document.querySelector("#tabla-eett tbody"),
   (r, c, val) => {
-    if (r >= state.itemizado.length || c !== 0) return;
-    getEett(state.itemizado[r].id).detalle = val;
+    const items = partidas();
+    if (r >= items.length || c !== 0) return;
+    getEett(items[r].id).detalle = val;
   },
   () => {
     programarGuardado();
@@ -1818,89 +2052,6 @@ attachGridPaste(
     renderResumen();
   }
 );
-
-/* ======================= Render: Materiales ======================= */
-function addMaterial(itemId) {
-  const m = { id: nuevoId(), itemId, nombre: "", tipo: "", detalle: "", cantidad: "", unidad: "", unico: false };
-  state.materiales.push(m);
-  return m;
-}
-
-function renderMateriales() {
-  const cont = document.getElementById("materiales-groups");
-  if (state.itemizado.length === 0) {
-    cont.innerHTML = '<p style="color:var(--ink-faint)">Agrega partidas en la pestaña 01 · Itemizado primero.</p>';
-    document.getElementById("chip-materiales").textContent = "";
-    return;
-  }
-  cont.innerHTML = state.itemizado
-    .map((it) => {
-      const filas = materialesDeItem(it.id);
-      const est = estadoMaterialesItem(it);
-      const filasHtml = filas
-        .map(
-          (m) =>
-            "<tr>" +
-            '<td><input type="text" data-mid="' + m.id + '" data-field="nombre" value="' + esc(m.nombre) + '" placeholder="Nombre del material/herramienta" /></td>' +
-            '<td><input type="text" list="dl-tipos" data-mid="' + m.id + '" data-field="tipo" value="' + esc(m.tipo) + '" placeholder="Material" /></td>' +
-            '<td><input type="text" data-mid="' + m.id + '" data-field="detalle" value="' + esc(m.detalle) + '" placeholder="Calidad / marca / modelo / formato / color" /></td>' +
-            '<td><input type="text" class="num" data-mid="' + m.id + '" data-field="cantidad" value="' + esc(m.cantidad) + '" placeholder="0" /></td>' +
-            '<td><input type="text" list="dl-unidades" data-mid="' + m.id + '" data-field="unidad" value="' + esc(m.unidad) + '" placeholder="un" /></td>' +
-            '<td><button class="rowdel" data-delmat="' + m.id + '" title="Eliminar línea">✕</button></td>' +
-            "</tr>"
-        )
-        .join("");
-      return (
-        '<div class="item-group">' +
-        '<div class="item-group-head">' +
-        '<span class="item-code">' + esc(it.item || "—") + "</span>" +
-        '<span class="item-desc">' + esc(it.descripcion || "(sin descripción)") + "</span>" +
-        pillHtml(est.status, est.issues) +
-        "</div>" +
-        '<div class="grid-wrap" style="border:none;border-radius:0">' +
-        '<table class="grid"><thead><tr><th style="width:22%">Nombre</th><th style="width:14%">Tipo</th><th>Detalle</th><th style="width:10%">Cant.</th><th style="width:9%">Unidad</th><th style="width:32px"></th></tr></thead>' +
-        "<tbody>" + filasHtml + "</tbody></table></div>" +
-        '<div class="item-group-foot"><button class="small" data-addmat="' + it.id + '">+ Agregar material/herramienta</button></div>' +
-        "</div>"
-      );
-    })
-    .join("");
-  const resumen = resumenEntregable(estadoMaterialesItem);
-  document.getElementById("chip-materiales").textContent = resumen.correctas + " partidas completas · " + resumen.mal + " con líneas incompletas · " + resumen.faltantes + " sin materiales";
-}
-
-const contMateriales = document.getElementById("materiales-groups");
-contMateriales.addEventListener("click", (e) => {
-  const addBtn = e.target.closest("[data-addmat]");
-  if (addBtn) {
-    addMaterial(addBtn.dataset.addmat);
-    programarGuardado();
-    renderMateriales();
-    renderCotizaciones();
-    renderResumen();
-    return;
-  }
-  const delBtn = e.target.closest("[data-delmat]");
-  if (delBtn) {
-    state.materiales = state.materiales.filter((m) => m.id !== delBtn.dataset.delmat);
-    delete state.cotizaciones[delBtn.dataset.delmat];
-    programarGuardado();
-    renderMateriales();
-    renderCotizaciones();
-    renderResumen();
-  }
-});
-contMateriales.addEventListener("input", (e) => {
-  const t = e.target;
-  if (!t.matches("input[data-mid]")) return;
-  const m = state.materiales.find((x) => x.id === t.dataset.mid);
-  if (!m) return;
-  m[t.dataset.field] = t.value;
-  programarGuardado();
-  renderMateriales();
-  renderCotizaciones();
-  renderResumen();
-});
 
 /* ======================= Render: Cotizaciones ======================= */
 function getCot(materialId) {
@@ -1910,12 +2061,13 @@ function getCot(materialId) {
 
 function renderCotizaciones() {
   const cont = document.getElementById("cotizaciones-groups");
-  if (state.itemizado.length === 0 || state.materiales.length === 0) {
-    cont.innerHTML = '<p style="color:var(--ink-faint)">Aún no hay materiales cargados en la pestaña 04 · Materiales.</p>';
+  const items = partidas();
+  if (items.length === 0 || state.materiales.length === 0) {
+    cont.innerHTML = '<p style="color:var(--ink-faint)">Aún no hay materiales cargados en la pestaña 01 · Itemizado y Materiales.</p>';
     document.getElementById("chip-cotizaciones").textContent = "";
     return;
   }
-  cont.innerHTML = state.itemizado
+  cont.innerHTML = items
     .map((it) => {
       const filas = materialesDeItem(it.id);
       if (filas.length === 0) return "";
@@ -2021,7 +2173,7 @@ document.getElementById("btn-reset").addEventListener("click", () => {
 
 /* ======================= Planilla Excel completa (descarga + revisión) ======================= */
 document.getElementById("btn-descargar-planilla-completa").addEventListener("click", async () => {
-  if (state.itemizado.length === 0) {
+  if (partidas().length === 0) {
     mostrarAviso("Agrega partidas en el Itemizado antes de descargar la planilla completa.", "warn");
     return;
   }
@@ -2032,38 +2184,45 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
     hojaResumen.push([d.nombre, r.total, r.realizadas, r.correctas, r.mal, r.faltantes]);
   });
 
-  const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD"]].concat(
-    state.itemizado.map((it) => [it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO"])
-  );
+  const hojaItemizado = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD", "ESTADO_MATERIALES", "OBSERVACIONES_MATERIALES"]];
+  state.itemizado.forEach((it) => {
+    if (esTitulo(it)) { hojaItemizado.push(["(título) " + it.item, it.descripcion, "", "", "", ""]); return; }
+    const est = estadoMaterialesItem(it);
+    hojaItemizado.push([it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
+  });
+
+  const hojaMateriales = [["ITEM", "DESCRIPCION_PARTIDA", "NOMBRE", "TIPO", "DETALLE", "CANTIDAD", "UNIDAD"]];
+  state.itemizado.forEach((it) => {
+    if (esTitulo(it)) return;
+    materialesDeItem(it.id).forEach((m) => hojaMateriales.push([it.item, it.descripcion, m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad]));
+  });
 
   const hojaCubicaciones = [["ITEM", "DESCRIPCION", "UNIDAD", "ESPECIALIDAD", "MEMORIA_CALCULO", "CANTIDAD", "RESPALDO", "FORMA_IRREGULAR", "ESTADO", "OBSERVACIONES"]];
-  state.itemizado.forEach((it) => {
-    const c = leerCub(it.id);
+  partidas().forEach((it) => {
+    const c = getCub(it.id);
     const est = estadoCubicacion(it);
-    hojaCubicaciones.push([
-      it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO",
-      c.memoria, c.cantidad, c.respaldo, c.irregular ? "SI" : "NO",
-      est.status.toUpperCase(), est.issues.join(" "),
-    ]);
+    let memoria = "", cantidad = "";
+    if (it.especialidad) { /* sin datos */ }
+    else if (it.unidad === "un" || dimsPorUnidad(it.unidad) === 0 || c.irregular) {
+      memoria = c.memoriaManual;
+      cantidad = c.cantidadManual;
+    } else {
+      memoria = memoriaDeTramos(it, c.tramos);
+      const info = calcularTotalTramos(it, c.tramos);
+      cantidad = info.tieneDatos && !info.incompleto ? formatNum(info.total) : "";
+    }
+    hojaCubicaciones.push([it.item, it.descripcion, it.unidad, it.especialidad ? "SI" : "NO", memoria, cantidad, c.respaldo, c.irregular ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
   });
 
   const hojaEett = [["ITEM", "DESCRIPCION", "DETALLE", "MARCADO", "ESTADO", "OBSERVACIONES"]];
-  state.itemizado.forEach((it) => {
+  partidas().forEach((it) => {
     const e = leerEett(it.id);
     const est = estadoEett(it);
     hojaEett.push([it.item, it.descripcion, e.detalle, e.marcado ? "SI" : "NO", est.status.toUpperCase(), est.issues.join(" ")]);
   });
 
-  const hojaMateriales = [["ITEM", "DESCRIPCION_PARTIDA", "NOMBRE", "TIPO", "DETALLE", "CANTIDAD", "UNIDAD", "ESTADO"]];
-  state.itemizado.forEach((it) => {
-    materialesDeItem(it.id).forEach((m) => {
-      const issues = estadoMaterialLinea(m);
-      hojaMateriales.push([it.item, it.descripcion, m.nombre, m.tipo, m.detalle, m.cantidad, m.unidad, issues.length ? "OBSERVADO: " + issues.join(", ") : "OK"]);
-    });
-  });
-
   const hojaCotizaciones = [["ITEM", "DESCRIPCION_PARTIDA", "MATERIAL", "TIPO", "PROVEEDOR_01", "PROVEEDOR_02", "PROVEEDOR_03", "UNICO", "ARCHIVO", "ESTADO", "OBSERVACIONES"]];
-  state.itemizado.forEach((it) => {
+  partidas().forEach((it) => {
     materialesDeItem(it.id).forEach((m) => {
       const c = state.cotizaciones[m.id] || {};
       const linea = estadoCotizacionLinea(m);
@@ -2078,9 +2237,9 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
   const blob = await generarXlsx([
     { nombre: "Resumen", filas: hojaResumen },
     { nombre: "Itemizado", filas: hojaItemizado },
+    { nombre: "Materiales", filas: hojaMateriales },
     { nombre: "Cubicaciones", filas: hojaCubicaciones },
     { nombre: "EETT", filas: hojaEett },
-    { nombre: "Materiales", filas: hojaMateriales },
     { nombre: "Cotizaciones", filas: hojaCotizaciones },
   ]);
   const slug = (state.proyecto || "proyecto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "proyecto";
@@ -2092,7 +2251,6 @@ document.getElementById("btn-descargar-planilla-completa").addEventListener("cli
 function renderDependientes() {
   renderCubicaciones();
   renderEett();
-  renderMateriales();
   renderCotizaciones();
 }
 function renderTodo() {
