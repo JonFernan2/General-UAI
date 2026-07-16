@@ -566,7 +566,7 @@
         <div class="plantillas-grid">
           <button class="small" id="btn-ptl-01">01 · Listado de Actividades (.xlsx)</button>
           <button class="small" id="btn-ptl-02">02 · Cubicaciones (.xlsx)</button>
-          <button class="small" id="btn-ptl-03">03 · Espec. Técnicas (.xlsx)</button>
+          <button class="small" id="btn-ptl-03">03 · EETT (entrega en Word)</button>
           <button class="small" id="btn-ptl-04">04 · Cotizaciones (.xlsx)</button>
         </div>
       </div>
@@ -643,7 +643,7 @@
       <p class="panel-sub">Las EETT se entregan en <strong>formato Word</strong> (no en esta planilla): se estudia la planimetría, se modifican/complementan según corresponda, indicando calidad, materialidad, tipo, formato, color, modelo y marca/proveedor de cada material — sin dejar nada a interpretación. Toda modificación agregada se resalta en <strong>amarillo</strong> y toda eliminación se <strong>tacha</strong>. Aquí registras, por partida, un resumen de esa modificación para auditar cobertura y nivel de detalle antes de entregar el Word; marca la casilla cuando el resaltado/tachado ya esté aplicado en el documento.</p>
 
       <div class="toolbar">
-        <button class="small" id="btn-plantilla-xlsx-eett">Descargar plantilla/datos (.xlsx)</button>
+        <button class="small" id="btn-plantilla-xlsx-eett">Descargar resumen auxiliar (.xlsx)</button>
         <button class="small" id="btn-import-xlsx-eett">Importar Excel (.xlsx)</button>
         <input type="file" id="file-xlsx-eett" accept=".xlsx" />
         <span class="spacer"></span>
@@ -3086,8 +3086,7 @@ document.getElementById("file-cargar-entrega").addEventListener("change", async 
 document.getElementById("btn-ptl-01").addEventListener("click", function() { document.getElementById("btn-plantilla-xlsx-itemizado").click(); });
 document.getElementById("btn-ptl-02").addEventListener("click", function() { document.getElementById("btn-ejemplo-xlsx-cubicaciones").click(); });
 document.getElementById("btn-ptl-03").addEventListener("click", function() {
-  if (partidas().length === 0) { mostrarAviso("Primero carga o crea el Itemizado (tab 01) — la plantilla EETT se genera desde los ITEM existentes.", "warn"); return; }
-  document.getElementById("btn-plantilla-xlsx-eett").click();
+  mostrarAviso("Las EETT se entregan en documento Word, no en Excel. Entrega al estudiante el Word base del proyecto; debe modificarlo resaltando en amarillo las adiciones (calidad, marca, modelo, formato, color, proveedor) y tachando las eliminaciones. El Excel auxiliar de resumen lo usa el profesor en el tab 03.", "info");
 });
 document.getElementById("btn-ptl-04").addEventListener("click", function() { document.getElementById("btn-plantilla-xlsx-cotizaciones").click(); });
 
