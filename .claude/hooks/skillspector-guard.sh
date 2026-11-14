@@ -36,6 +36,159 @@ tool="$(printf '%s' "$input" | jq -r '.tool_name // empty' 2>/dev/null)"
 cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)"
 [ -n "$cmd" ] || exit 0
 
+# ---------- 0) Quitar texto que no se ejecuta ----------
+# Evita falsos positivos con mensajes de commit, echo, grep y heredocs que solo
+# MENCIONAN "git clone" & co. Conserva lo que si se ejecuta: el contenido de
+# bash -c / sh -c / eval, los $(...) y `...` dentro de comillas, y los heredocs
+# que alimentan a un interprete (| bash, python, etc.). Ante duda (comilla sin
+# cerrar, heredoc sin terminador) deja el texto tal cual: peor caso, un aviso de mas.
+# Solo se usa para DETECTAR el comando; los links se sacan del comando original.
+read -r -d '' STRIP_AWK <<'AWKEOF' || true
+function isexec(t) { return (t ~ /(^|[ \t\n;&|(])(-[A-Za-z]*c|eval)[ \t]*$/) }
+function strip_text(str,   sS, sP, sN, r) {
+  sS = S; sP = P; sN = N
+  S = str; P = 1; N = length(str)
+  r = parse(0)
+  S = sS; P = sP; N = sN
+  return r
+}
+function find_term(pos, delim, dash,   le, line) {
+  while (pos <= N) {
+    le = index(substr(S, pos), "\n")
+    line = (le > 0) ? substr(S, pos, le - 1) : substr(S, pos)
+    if (dash) sub(/^\t+/, "", line)
+    if (line == delim) return pos
+    if (le == 0) return 0
+    pos += le
+  }
+  return 0
+}
+function parse(sub_mode,   out, c, d, depth, j, k, q, w, ch, seg, content, inner, startp, closed, hd, hd_delim, hd_dash, endp, lastline, body) {
+  out = ""; depth = 0; hd = 0
+  while (P <= N) {
+    c = substr(S, P, 1)
+    if (c == "\\") { out = out substr(S, P, 2); P += 2; continue }
+    if (c == "'") {
+      if (substr(out, length(out), 1) == "$") {
+        # $'...' (ANSI-C): \' no cierra la cadena
+        k = P + 1
+        while (k <= N) {
+          ch = substr(S, k, 1)
+          if (ch == "\\") { k += 2; continue }
+          if (ch == "'") break
+          k++
+        }
+        j = k - P
+        if (k > N) j = 0
+      } else {
+        j = index(substr(S, P + 1), "'")
+      }
+      if (j == 0) { out = out substr(S, P); P = N + 1; break }
+      content = substr(S, P + 1, j - 1)
+      if (isexec(out)) out = out "'" strip_text(content) "'"
+      else if (content ~ /^git\+/) out = out "'" content "'"
+      else out = out "''"
+      P += j + 1; continue
+    }
+    if (c == "\"") {
+      if (isexec(out)) {
+        k = P + 1
+        while (k <= N) {
+          ch = substr(S, k, 1)
+          if (ch == "\\") { k += 2; continue }
+          if (ch == "\"") break
+          k++
+        }
+        content = substr(S, P + 1, k - P - 1)
+        out = out "\"" strip_text(content) "\""
+        P = k + 1; continue
+      }
+      startp = P; P++; seg = ""; closed = 0
+      while (P <= N) {
+        ch = substr(S, P, 1)
+        if (ch == "\\") { P += 2; continue }
+        if (ch == "\"") { P++; closed = 1; break }
+        if (ch == "$" && substr(S, P + 1, 1) == "(") {
+          P += 2
+          inner = parse(1)
+          seg = seg " $(" inner ") "
+          continue
+        }
+        if (ch == "`") {
+          k = index(substr(S, P + 1), "`")
+          if (k == 0) { break }
+          seg = seg " `" strip_text(substr(S, P + 1, k - 1)) "` "
+          P += k + 1; continue
+        }
+        P++
+      }
+      if (!closed) { out = out substr(S, startp); P = N + 1; break }
+      content = substr(S, startp + 1, P - startp - 2)
+      if (content ~ /^git\+/) seg = seg " " content
+      out = out "\"" seg "\""
+      continue
+    }
+    if (c == "#") {
+      d = (out == "") ? "\n" : substr(out, length(out), 1)
+      if (d == " " || d == "\t" || d == "\n" || d == ";") {
+        while (P <= N && substr(S, P, 1) != "\n") P++
+        continue
+      }
+    }
+    if (c == "(") { depth++; out = out c; P++; continue }
+    if (c == ")") {
+      if (sub_mode && depth == 0) { P++; return out }
+      if (depth > 0) depth--
+      out = out c; P++; continue
+    }
+    if (c == "<" && substr(S, P, 2) == "<<" && substr(S, P + 2, 1) != "<") {
+      q = P + 2; hd_dash = 0
+      if (substr(S, q, 1) == "-") { hd_dash = 1; q++ }
+      while (substr(S, q, 1) == " " || substr(S, q, 1) == "\t") q++
+      w = ""
+      while (q <= N) {
+        ch = substr(S, q, 1)
+        if (ch ~ /[A-Za-z0-9_'"\\]/) { w = w ch; q++ } else break
+      }
+      gsub(/['"\\]/, "", w)
+      if (w ~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+        hd = 1; hd_delim = w
+        out = out substr(S, P, q - P); P = q
+        continue
+      }
+    }
+    if (c == "\n") {
+      out = out c; P++
+      if (hd) {
+        hd = 0
+        endp = find_term(P, hd_delim, hd_dash)
+        if (endp > 0) {
+          lastline = out; sub(/\n$/, "", lastline); sub(/^.*\n/, "", lastline)
+          if (lastline ~ INTERP) {
+            body = substr(S, P, endp - P)
+            out = out strip_text(body)
+          }
+          P = endp
+        }
+      }
+      continue
+    }
+    out = out c; P++
+  }
+  return out
+}
+BEGIN {
+  INTERP = "(^|[^A-Za-z0-9_./-])(ba|z|da|k)?sh([ \t;&|<>)]|$)|(^|[^A-Za-z0-9_./-])(eval|source|python[0-9.]*|node|ruby|perl|php)([ \t;&|<>)]|$)"
+}
+{ buf = buf $0 "\n" }
+END { S = buf; P = 1; N = length(S); printf "%s", parse(0) }
+AWKEOF
+
+scan_cmd="$cmd"
+if command -v awk >/dev/null 2>&1; then
+  stripped="$(printf '%s' "$cmd" | awk "$STRIP_AWK" 2>/dev/null)" && [ -n "$stripped" ] && scan_cmd="$stripped"
+fi
+
 # ---------- 1) Es un comando que trae codigo externo? ----------
 S='[[:space:]]'
 B='(^|[^[:alnum:]_./-])'
@@ -48,9 +201,10 @@ for re in \
   "${B}pip[0-9.]*${S}+([^;&|]*${S})?install[^;&|]*git\\+" \
   "${B}uv${S}+tool${S}+install[^;&|]*git\\+" \
   "${B}(curl|wget)${S}[^|;&]*\\|${S}*(sudo${S}+(-[^[:space:]]+${S}+)*)?(ba|z|da)?sh([^[:alnum:]_]|\$)" \
-  "${B}(ba|z|da)?sh${S}+(-c${S}+)?[\"']?(<\\(|\\\$\\()${S}*(curl|wget)"
+  "${B}(ba|z|da)?sh${S}+(-c${S}+)?[\"']?(<\\(|\\\$\\()${S}*(curl|wget)" \
+  "${B}eval${S}+[\"']?\\\$\\(${S}*(curl|wget)"
 do
-  if printf '%s' "$cmd" | grep -Eq -- "$re"; then guarded=1; break; fi
+  if printf '%s' "$scan_cmd" | grep -Eq -- "$re"; then guarded=1; break; fi
 done
 [ "$guarded" = 1 ] || exit 0
 
